@@ -6,9 +6,13 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Settings, Heart, ShoppingBag, MapPin, Bell, CreditCard, CircleHelp as HelpCircle, LogOut, ChevronRight, Star, Leaf } from 'lucide-react-native';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 
 const menuItems = [
   { icon: ShoppingBag, label: 'Order History', color: '#16a34a' },
@@ -21,17 +25,45 @@ const menuItems = [
 ];
 
 export default function ProfileScreen() {
+  const router = useRouter();
+  const { signOut } = useAuth();
+  const { profile } = useProfile();
+
+  const handleSignOut = () => {
+    Alert.alert(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Sign Out', 
+          style: 'destructive',
+          onPress: async () => {
+            const { error } = await signOut();
+            if (error) {
+              Alert.alert('Error', 'Failed to sign out');
+            } else {
+              router.replace('/auth/login');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <Image
-            source={{ uri: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=200' }}
+            source={{ 
+              uri: profile?.avatar_url || 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=200' 
+            }}
             style={styles.profileImage}
           />
-          <Text style={styles.userName}>Alex Johnson</Text>
-          <Text style={styles.userEmail}>alex.johnson@email.com</Text>
+          <Text style={styles.userName}>{profile?.full_name || 'User'}</Text>
+          <Text style={styles.userEmail}>{profile?.email}</Text>
           
           <View style={styles.badgeContainer}>
             <View style={styles.badge}>
@@ -97,7 +129,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Logout */}
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleSignOut}>
           <LogOut size={20} color="#ef4444" strokeWidth={2} />
           <Text style={styles.logoutText}>Sign Out</Text>
         </TouchableOpacity>

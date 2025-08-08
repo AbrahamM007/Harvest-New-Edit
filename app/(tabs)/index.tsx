@@ -7,51 +7,44 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MapPin, Star, Clock, Leaf } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { useProducts } from '@/hooks/useProducts';
+import { useCategories } from '@/hooks/useCategories';
+import { useProfile } from '@/hooks/useProfile';
 
 const { width } = Dimensions.get('window');
 
-const featuredProducts = [
-  {
-    id: 1,
-    name: 'Organic Tomatoes',
-    price: '$4.99/lb',
-    farmer: 'Sarah\'s Garden',
-    distance: '0.8 miles',
-    rating: 4.9,
-    image: 'https://images.pexels.com/photos/1327838/pexels-photo-1327838.jpeg?auto=compress&cs=tinysrgb&w=400',
-    freshness: 'Picked today',
-  },
-  {
-    id: 2,
-    name: 'Fresh Lettuce',
-    price: '$2.49/head',
-    farmer: 'Green Valley Farm',
-    distance: '1.2 miles',
-    rating: 4.8,
-    image: 'https://images.pexels.com/photos/1656663/pexels-photo-1656663.jpeg?auto=compress&cs=tinysrgb&w=400',
-    freshness: 'Harvested yesterday',
-  },
-];
-
-const categories = [
-  { name: 'Vegetables', icon: '🥕', color: '#16a34a' },
-  { name: 'Fruits', icon: '🍎', color: '#dc2626' },
-  { name: 'Herbs', icon: '🌿', color: '#059669' },
-  { name: 'Dairy', icon: '🥛', color: '#2563eb' },
-];
-
 export default function HomeScreen() {
+  const router = useRouter();
+  const { products, loading: productsLoading } = useProducts();
+  const { categories, loading: categoriesLoading } = useCategories();
+  const { profile } = useProfile();
+
+  const featuredProducts = products.slice(0, 2);
+  const isLoading = productsLoading || categoriesLoading;
+
+  const formatPrice = (price: number, unit: string) => `$${price.toFixed(2)}/${unit}`;
+  
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning! 🌅';
+    if (hour < 17) return 'Good afternoon! ☀️';
+    return 'Good evening! 🌙';
+  };
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Good morning! 🌅</Text>
+            <Text style={styles.greeting}>
+              {profile?.full_name ? `Hello, ${profile.full_name.split(' ')[0]}! 👋` : getTimeBasedGreeting()}
+            </Text>
             <View style={styles.locationContainer}>
               <MapPin size={16} color="#6b7280" strokeWidth={2} />
               <Text style={styles.location}>Downtown Community</Text>
@@ -59,7 +52,9 @@ export default function HomeScreen() {
           </View>
           <TouchableOpacity style={styles.profileButton}>
             <Image
-              source={{ uri: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100' }}
+              source={{ 
+                uri: profile?.avatar_url || 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100' 
+              }}
               style={styles.profileImage}
             />
           </TouchableOpacity>
@@ -85,61 +80,81 @@ export default function HomeScreen() {
         {/* Categories */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Shop by Category</Text>
-          <View style={styles.categoriesGrid}>
-            {categories.map((category, index) => (
-              <TouchableOpacity key={index} style={styles.categoryCard}>
-                <View style={[styles.categoryIcon, { backgroundColor: category.color + '20' }]}>
-                  <Text style={styles.categoryEmoji}>{category.icon}</Text>
-                </View>
-                <Text style={styles.categoryName}>{category.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {isLoading ? (
+            <ActivityIndicator size="large" color="#16a34a" style={styles.loader} />
+          ) : (
+            <View style={styles.categoriesGrid}>
+              {categories.map((category) => (
+                <TouchableOpacity 
+                  key={category.id} 
+                  style={styles.categoryCard}
+                  onPress={() => router.push(`/(tabs)/search?category=${category.name}`)}
+                >
+                  <View style={[styles.categoryIcon, { backgroundColor: category.color + '20' }]}>
+                    <Text style={styles.categoryEmoji}>{category.icon}</Text>
+                  </View>
+                  <Text style={styles.categoryName}>{category.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
         </View>
 
         {/* Featured Products */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Fresh Today</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/search')}>
               <Text style={styles.seeAllText}>See all</Text>
             </TouchableOpacity>
           </View>
           
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.productsScroll}>
-            {featuredProducts.map((product) => (
-              <TouchableOpacity key={product.id} style={styles.productCard}>
-                <Image source={{ uri: product.image }} style={styles.productImage} />
-                <View style={styles.freshnessTag}>
-                  <Clock size={12} color="#16a34a" strokeWidth={2} />
-                  <Text style={styles.freshnessText}>{product.freshness}</Text>
-                </View>
-                
-                <View style={styles.productInfo}>
-                  <Text style={styles.productName}>{product.name}</Text>
-                  <Text style={styles.farmerName}>{product.farmer}</Text>
-                  
-                  <View style={styles.productMeta}>
-                    <View style={styles.ratingContainer}>
-                      <Star size={14} color="#fbbf24" fill="#fbbf24" strokeWidth={2} />
-                      <Text style={styles.rating}>{product.rating}</Text>
-                    </View>
-                    <View style={styles.distanceContainer}>
-                      <MapPin size={12} color="#6b7280" strokeWidth={2} />
-                      <Text style={styles.distance}>{product.distance}</Text>
-                    </View>
+          {isLoading ? (
+            <ActivityIndicator size="large" color="#16a34a" style={styles.loader} />
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.productsScroll}>
+              {featuredProducts.map((product) => (
+                <TouchableOpacity 
+                  key={product.id} 
+                  style={styles.productCard}
+                  onPress={() => router.push(`/product/${product.id}`)}
+                >
+                  <Image source={{ uri: product.image_url }} style={styles.productImage} />
+                  <View style={styles.freshnessTag}>
+                    <Clock size={12} color="#16a34a" strokeWidth={2} />
+                    <Text style={styles.freshnessText}>
+                      {product.harvest_date ? 'Fresh harvest' : 'Available now'}
+                    </Text>
                   </View>
                   
-                  <View style={styles.priceContainer}>
-                    <Text style={styles.price}>{product.price}</Text>
-                    <TouchableOpacity style={styles.addButton}>
-                      <Text style={styles.addButtonText}>+</Text>
-                    </TouchableOpacity>
+                  <View style={styles.productInfo}>
+                    <Text style={styles.productName}>{product.name}</Text>
+                    <Text style={styles.farmerName}>{product.farmer.farm_name}</Text>
+                    
+                    <View style={styles.productMeta}>
+                      <View style={styles.ratingContainer}>
+                        <Star size={14} color="#fbbf24" fill="#fbbf24" strokeWidth={2} />
+                        <Text style={styles.rating}>
+                          {product.average_rating ? product.average_rating.toFixed(1) : '4.8'}
+                        </Text>
+                      </View>
+                      <View style={styles.distanceContainer}>
+                        <MapPin size={12} color="#6b7280" strokeWidth={2} />
+                        <Text style={styles.distance}>1.2 miles</Text>
+                      </View>
+                    </View>
+                    
+                    <View style={styles.priceContainer}>
+                      <Text style={styles.price}>{formatPrice(product.price, product.unit)}</Text>
+                      <TouchableOpacity style={styles.addButton}>
+                        <Text style={styles.addButtonText}>+</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
         </View>
 
         {/* Community Stats */}
@@ -202,6 +217,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+  },
+  loader: {
+    marginVertical: 20,
   },
   heroSection: {
     marginHorizontal: 20,

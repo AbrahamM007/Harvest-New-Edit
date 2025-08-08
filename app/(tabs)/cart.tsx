@@ -9,40 +9,32 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Minus, Plus, Trash2, CreditCard, MapPin } from 'lucide-react-native';
 
-const cartItems = [
-  {
-    id: 1,
-    name: 'Organic Tomatoes',
-    price: 4.99,
-    quantity: 2,
-    farmer: 'Sarah\'s Garden',
-    image: 'https://images.pexels.com/photos/1327838/pexels-photo-1327838.jpeg?auto=compress&cs=tinysrgb&w=400',
-    unit: 'lb',
-  },
-  {
-    id: 2,
-    name: 'Fresh Lettuce',
-    price: 2.49,
-    quantity: 1,
-    farmer: 'Green Valley Farm',
-    image: 'https://images.pexels.com/photos/1656663/pexels-photo-1656663.jpeg?auto=compress&cs=tinysrgb&w=400',
-    unit: 'head',
-  },
-  {
-    id: 3,
-    name: 'Farm Fresh Eggs',
-    price: 5.99,
-    quantity: 1,
-    farmer: 'Happy Hens Farm',
-    image: 'https://images.pexels.com/photos/162712/egg-white-food-protein-162712.jpeg?auto=compress&cs=tinysrgb&w=400',
-    unit: 'dozen',
-  },
-];
-
 export default function CartScreen() {
-  const [items, setItems] = useState(cartItems);
+  const router = useRouter();
+  // For now, using mock data - in a real app, this would come from a cart context/state
+  const [items, setItems] = useState([
+    {
+      id: 1,
+      name: 'Organic Tomatoes',
+      price: 4.99,
+      quantity: 2,
+      farmer: 'Sarah\'s Garden',
+      image: 'https://images.pexels.com/photos/1327838/pexels-photo-1327838.jpeg?auto=compress&cs=tinysrgb&w=400',
+      unit: 'lb',
+    },
+    {
+      id: 2,
+      name: 'Fresh Lettuce',
+      price: 2.49,
+      quantity: 1,
+      farmer: 'Green Valley Farm',
+      image: 'https://images.pexels.com/photos/1656663/pexels-photo-1656663.jpeg?auto=compress&cs=tinysrgb&w=400',
+      unit: 'head',
+    },
+  ]);
 
   const updateQuantity = (id: number, change: number) => {
     setItems(prevItems =>
@@ -63,11 +55,11 @@ export default function CartScreen() {
   const total = subtotal + deliveryFee;
 
   const handleCheckout = () => {
-    Alert.alert(
-      'Checkout',
-      'Proceeding to secure payment with Stripe...',
-      [{ text: 'Continue', onPress: () => console.log('Stripe checkout initiated') }]
-    );
+    if (items.length === 0) {
+      Alert.alert('Empty Cart', 'Please add some items to your cart first');
+      return;
+    }
+    router.push('/checkout');
   };
 
   return (

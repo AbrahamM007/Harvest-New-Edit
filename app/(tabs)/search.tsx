@@ -7,85 +7,34 @@ import {
   TouchableOpacity,
   TextInput,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Search, Filter, MapPin, Star } from 'lucide-react-native';
-
-const products = [
-  {
-    id: 1,
-    name: 'Organic Carrots',
-    price: '$3.99/lb',
-    farmer: 'Sunny Acres Farm',
-    distance: '0.5 miles',
-    rating: 4.9,
-    image: 'https://images.pexels.com/photos/143133/pexels-photo-143133.jpeg?auto=compress&cs=tinysrgb&w=400',
-    category: 'Vegetables',
-  },
-  {
-    id: 2,
-    name: 'Fresh Strawberries',
-    price: '$6.99/pint',
-    farmer: 'Berry Patch',
-    distance: '1.1 miles',
-    rating: 4.8,
-    image: 'https://images.pexels.com/photos/89778/strawberries-frisch-ripe-sweet-89778.jpeg?auto=compress&cs=tinysrgb&w=400',
-    category: 'Fruits',
-  },
-  {
-    id: 3,
-    name: 'Organic Spinach',
-    price: '$4.49/bunch',
-    farmer: 'Green Leaf Gardens',
-    distance: '0.7 miles',
-    rating: 4.7,
-    image: 'https://images.pexels.com/photos/2255935/pexels-photo-2255935.jpeg?auto=compress&cs=tinysrgb&w=400',
-    category: 'Vegetables',
-  },
-  {
-    id: 4,
-    name: 'Farm Fresh Eggs',
-    price: '$5.99/dozen',
-    farmer: 'Happy Hens Farm',
-    distance: '2.1 miles',
-    rating: 4.9,
-    image: 'https://images.pexels.com/photos/162712/egg-white-food-protein-162712.jpeg?auto=compress&cs=tinysrgb&w=400',
-    category: 'Dairy',
-  },
-  {
-    id: 5,
-    name: 'Fresh Basil',
-    price: '$2.99/bunch',
-    farmer: 'Herb Heaven',
-    distance: '1.5 miles',
-    rating: 4.6,
-    image: 'https://images.pexels.com/photos/4198015/pexels-photo-4198015.jpeg?auto=compress&cs=tinysrgb&w=400',
-    category: 'Herbs',
-  },
-  {
-    id: 6,
-    name: 'Heirloom Tomatoes',
-    price: '$7.99/lb',
-    farmer: 'Heritage Gardens',
-    distance: '1.8 miles',
-    rating: 4.8,
-    image: 'https://images.pexels.com/photos/1327838/pexels-photo-1327838.jpeg?auto=compress&cs=tinysrgb&w=400',
-    category: 'Vegetables',
-  },
-];
+import { useProductsByCategory } from '@/hooks/useProducts';
+import { useCategories } from '@/hooks/useCategories';
 
 export default function SearchScreen() {
+  const router = useRouter();
+  const { category: initialCategory } = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState(
+    typeof initialCategory === 'string' ? initialCategory : 'All'
+  );
 
-  const categories = ['All', 'Vegetables', 'Fruits', 'Herbs', 'Dairy'];
+  const { categories, loading: categoriesLoading } = useCategories();
+  const { products, loading: productsLoading } = useProductsByCategory(selectedCategory);
+
+  const categoryOptions = ['All', ...categories.map(cat => cat.name)];
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         product.farmer.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    return product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           product.farmer.farm_name.toLowerCase().includes(searchQuery.toLowerCase());
   });
+
+  const formatPrice = (price: number, unit: string) => `$${price.toFixed(2)}/${unit}`;
+  const isLoading = categoriesLoading || productsLoading;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -113,7 +62,7 @@ export default function SearchScreen() {
 
       {/* Category Filter */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryFilter}>
-        {categories.map((category) => (
+        {categoryOptions.map((category) => (
           <TouchableOpacity
             key={category}
             style={[
@@ -133,38 +82,51 @@ export default function SearchScreen() {
       </ScrollView>
 
       {/* Products Grid */}
-      <ScrollView style={styles.productsContainer} showsVerticalScrollIndicator={false}>
-        <View style={styles.productsGrid}>
-          {filteredProducts.map((product) => (
-            <TouchableOpacity key={product.id} style={styles.productCard}>
-              <Image source={{ uri: product.image }} style={styles.productImage} />
-              
-              <View style={styles.productInfo}>
-                <Text style={styles.productName}>{product.name}</Text>
-                <Text style={styles.farmerName}>{product.farmer}</Text>
-                
-                <View style={styles.productMeta}>
-                  <View style={styles.ratingContainer}>
-                    <Star size={12} color="#fbbf24" fill="#fbbf24" strokeWidth={2} />
-                    <Text style={styles.rating}>{product.rating}</Text>
-                  </View>
-                  <View style={styles.distanceContainer}>
-                    <MapPin size={10} color="#6b7280" strokeWidth={2} />
-                    <Text style={styles.distance}>{product.distance}</Text>
-                  </View>
-                </View>
-                
-                <View style={styles.priceContainer}>
-                  <Text style={styles.price}>{product.price}</Text>
-                  <TouchableOpacity style={styles.addButton}>
-                    <Text style={styles.addButtonText}>+</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#16a34a" />
+          <Text style={styles.loadingText}>Loading fresh produce...</Text>
         </View>
-      </ScrollView>
+      ) : (
+        <ScrollView style={styles.productsContainer} showsVerticalScrollIndicator={false}>
+          <View style={styles.productsGrid}>
+            {filteredProducts.map((product) => (
+              <TouchableOpacity 
+                key={product.id} 
+                style={styles.productCard}
+                onPress={() => router.push(`/product/${product.id}`)}
+              >
+                <Image source={{ uri: product.image_url }} style={styles.productImage} />
+                
+                <View style={styles.productInfo}>
+                  <Text style={styles.productName}>{product.name}</Text>
+                  <Text style={styles.farmerName}>{product.farmer.farm_name}</Text>
+                  
+                  <View style={styles.productMeta}>
+                    <View style={styles.ratingContainer}>
+                      <Star size={12} color="#fbbf24" fill="#fbbf24" strokeWidth={2} />
+                      <Text style={styles.rating}>
+                        {product.average_rating ? product.average_rating.toFixed(1) : '4.8'}
+                      </Text>
+                    </View>
+                    <View style={styles.distanceContainer}>
+                      <MapPin size={10} color="#6b7280" strokeWidth={2} />
+                      <Text style={styles.distance}>1.2 miles</Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.priceContainer}>
+                    <Text style={styles.price}>{formatPrice(product.price, product.unit)}</Text>
+                    <TouchableOpacity style={styles.addButton}>
+                      <Text style={styles.addButtonText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
@@ -325,5 +287,16 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6b7280',
+    marginTop: 12,
   },
 });

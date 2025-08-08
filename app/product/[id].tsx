@@ -7,9 +7,13 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import type { Database } from '@/lib/database.types';
 import { 
   ArrowLeft, 
   Heart, 
@@ -26,40 +30,101 @@ import {
 
 const { width } = Dimensions.get('window');
 
+type Product = Database['public']['Tables']['products']['Row'] & {
+  farmer: Database['public']['Tables']['farmers']['Row'];
+  category: Database['public']['Tables']['categories']['Row'] | null;
+  average_rating?: number;
+  review_count?: number;
+};
+
 export default function ProductDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock product data - in real app, fetch based on id
-  const product = {
-    id: 1,
-    name: 'Organic Tomatoes',
-    price: 4.99,
-    farmer: 'Sarah\'s Garden',
-    distance: '0.8 miles',
-    rating: 4.9,
-    reviews: 127,
-    image: 'https://images.pexels.com/photos/1327838/pexels-photo-1327838.jpeg?auto=compress&cs=tinysrgb&w=800',
-    freshness: 'Picked today',
-    description: 'These vine-ripened organic tomatoes are grown with love in our pesticide-free garden. Perfect for salads, cooking, or eating fresh. Rich in vitamins and bursting with flavor.',
-    features: [
-      { icon: Leaf, text: 'Certified Organic' },
-      { icon: Clock, text: 'Harvested Today' },
-      { icon: Truck, text: 'Same Day Delivery' },
-      { icon: Shield, text: 'Quality Guaranteed' },
-    ],
+  useEffect(() => {
+    fetchProduct();
+  }, [id]);
+
+  const fetchProduct = async () => {
+    if (!id) return;
+    
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          farmer:farmers(*),
+          category:categories(*),
+          reviews(rating)
+        `)
+        .eq('id', id)
+        .eq('is_available', true)
+        .single();
+
+      if (error) throw error;
+
+      // Calculate average rating
+      const productWithRating = {
+        ...data,
+        average_rating: data.reviews?.length > 0 
+          ? data.reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / data.reviews.length
+          : 0,
+        review_count: data.reviews?.length || 0,
+      };
+
+      setProduct(productWithRating);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch product');
+    } finally {
+      setLoading(false);
+    }
   };
-
   const updateQuantity = (change: number) => {
     setQuantity(Math.max(1, quantity + change));
   };
 
   const addToCart = () => {
+    if (!product) return;
     console.log(`Added ${quantity} ${product.name} to cart`);
     // Add to cart logic here
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#16a34a" />
+          <Text style={styles.loadingText}>Loading product...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error || 'Product not found'}</Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Text style={styles.backButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const features = [
+    { icon: Leaf, text: product.is_organic ? 'Certified Organic' : 'Conventionally Grown' },
+    { icon: Clock, text: product.harvest_date ? 'Fresh Harvest' : 'Available Now' },
+    { icon: Truck, text: 'Same Day Delivery' },
+    { icon: Shield, text: 'Quality Guaranteed' },
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -88,11 +153,13 @@ export default function ProductDetailScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Product Image */}
-        <Image source={{ uri: product.image }} style={styles.productImage} />
+        <Image source={{ uri: product.image_url }} style={styles.productImage} />
         
         <View style={styles.freshnessTag}>
           <Clock size={14} color="#16a34a" strokeWidth={2} />
-          <Text style={styles.freshnessText}>{product.freshness}</Text>
+          <Text style={styles.freshnessText}>
+            {product.harvest_date ? 'Fresh harvest' : 'Available now'}
+          </Text>
         </View>
 
         {/* Product Info */}
@@ -101,22 +168,26 @@ export default function ProductDetailScreen() {
           
           <View style={styles.farmerInfo}>
             <MapPin size={16} color="#6b7280" strokeWidth={2} />
-            <Text style={styles.farmerText}>{product.farmer} • {product.distance}</Text>
+            <Text style={styles.farmerText}>{product.farmer.farm_name} • 1.2 miles</Text>
           </View>
 
           <View style={styles.ratingSection}>
             <View style={styles.ratingContainer}>
               <Star size={16} color="#fbbf24" fill="#fbbf24" strokeWidth={2} />
-              <Text style={styles.rating}>{product.rating}</Text>
-              <Text style={styles.reviewCount}>({product.reviews} reviews)</Text>
+              <Text style={styles.rating}>
+                {product.average_rating ? product.average_rating.toFixed(1) : '4.8'}
+              </Text>
+              <Text style={styles.reviewCount}>({product.review_count} reviews)</Text>
             </View>
           </View>
 
-          <Text style={styles.description}>{product.description}</Text>
+          <Text style={styles.description}>
+            {product.description || 'Fresh, high-quality produce from local farmers.'}
+          </Text>
 
           {/* Features */}
           <View style={styles.featuresContainer}>
-            {product.features.map((feature, index) => (
+            {features.map((feature, index) => (
               <View key={index} style={styles.feature}>
                 <feature.icon size={16} color="#16a34a" strokeWidth={2} />
                 <Text style={styles.featureText}>{feature.text}</Text>
@@ -129,7 +200,7 @@ export default function ProductDetailScreen() {
       {/* Bottom Action */}
       <View style={styles.bottomAction}>
         <View style={styles.priceSection}>
-          <Text style={styles.priceLabel}>Price per lb</Text>
+          <Text style={styles.priceLabel}>Price per {product.unit}</Text>
           <Text style={styles.price}>${product.price.toFixed(2)}</Text>
         </View>
 
@@ -320,6 +391,39 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 18,
     fontWeight: '700',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6b7280',
+    marginTop: 12,
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  errorText: {
+    fontSize: 18,
+    color: '#ef4444',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  backButton: {
+    backgroundColor: '#16a34a',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  backButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
   },
   totalPrice: {
     color: '#ffffff',

@@ -24,9 +24,9 @@ export function useFarmer() {
         .from('farmers')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
+      if (error) throw error;
       setFarmer(data || null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch farmer profile');

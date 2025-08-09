@@ -55,6 +55,23 @@ export function useAuth() {
         },
       },
     });
+    
+    // If signup was successful and user was created, create profile
+    if (data.user && !error) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: data.user.id,
+          email: data.user.email!,
+          full_name: fullName,
+        });
+      
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+        return { data, error: profileError };
+      }
+    }
+    
     return { data, error };
   };
 

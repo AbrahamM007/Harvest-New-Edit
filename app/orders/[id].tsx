@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { ArrowLeft, MapPin, Clock, Package, CheckCircle } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Clock, Package, CircleCheck as CheckCircle } from 'lucide-react-native';
 import type { Database } from '@/lib/database.types';
 
 type Order = Database['public']['Tables']['orders']['Row'] & {

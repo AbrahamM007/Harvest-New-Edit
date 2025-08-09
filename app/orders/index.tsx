@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Package, Clock, MapPin, CheckCircle } from 'lucide-react-native';
+import { ArrowLeft, Package, Clock, MapPin, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { useOrders } from '@/hooks/useOrders';
 
 export default function OrdersScreen() {

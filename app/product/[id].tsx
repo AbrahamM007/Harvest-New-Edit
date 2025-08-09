@@ -91,7 +91,7 @@ export default function ProductDetailScreen() {
     setQuantity(Math.max(1, quantity + change));
   };
 
-  const addToCart = () => {
+  const handleAddToCart = () => {
     if (!product) return;
     addToCart(product, quantity);
     router.back();
@@ -222,7 +222,7 @@ export default function ProductDetailScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.addToCartButton} onPress={addToCart}>
+        <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
           <Text style={styles.addToCartText}>Add to Cart</Text>
           <Text style={styles.totalPrice}>${(product.price * quantity).toFixed(2)}</Text>
         </TouchableOpacity>

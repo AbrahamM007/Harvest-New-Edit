@@ -35,8 +35,12 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="auth/login" />
         <Stack.Screen name="auth/signup" />
+        <Stack.Screen name="profile/edit" />
         <Stack.Screen name="checkout" />
         <Stack.Screen name="product/[id]" />
+        <Stack.Screen name="seller/enroll" />
+        <Stack.Screen name="seller/dashboard" />
+        <Stack.Screen name="seller/add-product" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

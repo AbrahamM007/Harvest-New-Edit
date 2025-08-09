@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { Settings, Heart, ShoppingBag, MapPin, Bell, CreditCard, CircleHelp as HelpCircle, LogOut, ChevronRight, Star, Leaf } from 'lucide-react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { useFarmer } from '@/hooks/useFarmer';
 
 const menuItems = [
   { icon: ShoppingBag, label: 'Order History', color: '#16a34a' },
@@ -28,6 +29,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { signOut } = useAuth();
   const { profile } = useProfile();
+  const { farmer } = useFarmer();
 
   const handleSignOut = () => {
     Alert.alert(
@@ -51,21 +53,40 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleMenuPress = (item: any) => {
+    if (item.route) {
+      router.push(item.route);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
-          <Image
-            source={{ 
-              uri: profile?.avatar_url || 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=200' 
-            }}
-            style={styles.profileImage}
-          />
+          <TouchableOpacity onPress={() => router.push('/profile/edit')}>
+            <Image
+              source={{ 
+                uri: profile?.avatar_url || 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=200' 
+              }}
+              style={styles.profileImage}
+            />
+            <View style={styles.editIcon}>
+              <Edit3 size={16} color="#ffffff" strokeWidth={2} />
+            </View>
+          </TouchableOpacity>
           <Text style={styles.userName}>{profile?.full_name || 'User'}</Text>
           <Text style={styles.userEmail}>{profile?.email}</Text>
           
           <View style={styles.badgeContainer}>
+            {farmer && (
+              <View style={styles.badge}>
+                <Store size={16} color="#2563eb" strokeWidth={2} />
+                <Text style={[styles.badgeText, { color: '#2563eb' }]}>
+                  {farmer.verified ? 'Verified Seller' : 'Pending Seller'}
+                </Text>
+              </View>
+            )}
             <View style={styles.badge}>
               <Leaf size={16} color="#16a34a" strokeWidth={2} />
               <Text style={styles.badgeText}>Eco Supporter</Text>
@@ -97,7 +118,7 @@ export default function ProfileScreen() {
         {/* Menu Items */}
         <View style={styles.menuContainer}>
           {menuItems.map((item, index) => (
-            <TouchableOpacity key={index} style={styles.menuItem}>
+            <TouchableOpacity key={index} style={styles.menuItem} onPress={() => handleMenuPress(item)}>
               <View style={styles.menuItemLeft}>
                 <View style={[styles.menuIcon, { backgroundColor: item.color + '20' }]}>
                   <item.icon size={20} color={item.color} strokeWidth={2} />
@@ -109,24 +130,42 @@ export default function ProfileScreen() {
           ))}
         </View>
 
+        {/* Seller Section */}
+        {farmer ? (
+          <View style={styles.sellerSection}>
+            <TouchableOpacity 
+              style={styles.sellerCard}
+              onPress={() => router.push('/seller/dashboard')}
+            >
+              <View style={styles.sellerContent}>
+                <Text style={styles.sellerTitle}>Seller Dashboard</Text>
+                <Text style={styles.sellerSubtitle}>
+                  Manage your products and view sales
+                </Text>
+              </View>
+              <ChevronRight size={20} color="#9ca3af" strokeWidth={2} />
+            </TouchableOpacity>
+          </View>
+        ) : (
         {/* Become a Seller */}
         <View style={styles.sellerSection}>
-          <View style={styles.sellerCard}>
+          <TouchableOpacity 
+            style={styles.sellerCard}
+            onPress={() => router.push('/seller/enroll')}
+          >
             <View style={styles.sellerContent}>
               <Text style={styles.sellerTitle}>Become a Local Seller</Text>
               <Text style={styles.sellerSubtitle}>
                 Share your homegrown produce with the community
               </Text>
-              <TouchableOpacity style={styles.sellerButton}>
-                <Text style={styles.sellerButtonText}>Get Started</Text>
-              </TouchableOpacity>
             </View>
             <Image
               source={{ uri: 'https://images.pexels.com/photos/1459339/pexels-photo-1459339.jpeg?auto=compress&cs=tinysrgb&w=200' }}
               style={styles.sellerImage}
             />
-          </View>
+          </TouchableOpacity>
         </View>
+        )}
 
         {/* Logout */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleSignOut}>
@@ -168,6 +207,9 @@ const styles = StyleSheet.create({
   },
   badgeContainer: {
     flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
   },
   badge: {
     flexDirection: 'row',
@@ -182,6 +224,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#16a34a',
     fontWeight: '600',
+  },
+  editIcon: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#16a34a',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#ffffff',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -250,11 +305,11 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   sellerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#ffffff',
     borderRadius: 16,
     padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -263,7 +318,6 @@ const styles = StyleSheet.create({
   },
   sellerContent: {
     flex: 1,
-    marginRight: 16,
   },
   sellerTitle: {
     fontSize: 18,
@@ -275,24 +329,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     lineHeight: 20,
-    marginBottom: 16,
-  },
-  sellerButton: {
-    backgroundColor: '#16a34a',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  sellerButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
   },
   sellerImage: {
     width: 80,
     height: 80,
     borderRadius: 12,
+    marginLeft: 16,
   },
   logoutButton: {
     flexDirection: 'row',

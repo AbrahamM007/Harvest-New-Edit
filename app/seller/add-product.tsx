@@ -69,7 +69,7 @@ export default function AddProductScreen() {
       Alert.alert(
         'Product Added!',
         'Your product has been successfully added to the marketplace.',
-        [{ text: 'Continue', onPress: () => router.back() }]
+        [{ text: 'Continue', onPress: () => router.replace('/seller/dashboard') }]
       );
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to add product');

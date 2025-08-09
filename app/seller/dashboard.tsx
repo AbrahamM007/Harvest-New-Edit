@@ -7,12 +7,14 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Plus, Package, DollarSign, TrendingUp, Eye, CreditCard as Edit3, Trash2, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { useSellerProducts } from '@/hooks/useSellerProducts';
 import { useFarmer } from '@/hooks/useFarmer';
+import { supabase } from '@/lib/supabase';
 
 export default function SellerDashboardScreen() {
   const router = useRouter();
@@ -22,6 +24,35 @@ export default function SellerDashboardScreen() {
   const totalRevenue = products.reduce((sum, product) => sum + (product.price * 10), 0); // Mock sales
   const totalProducts = products.length;
   const activeProducts = products.filter(p => p.is_available).length;
+
+  const handleDeleteProduct = async (productId: string, productName: string) => {
+    Alert.alert(
+      'Delete Product',
+      `Are you sure you want to delete "${productName}"? This action cannot be undone.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { error } = await supabase
+                .from('products')
+                .delete()
+                .eq('id', productId);
+
+              if (error) throw error;
+              
+              // Refresh products list
+              window.location.reload();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete product');
+            }
+          }
+        }
+      ]
+    );
+  };
 
   if (farmerLoading) {
     return (
@@ -159,11 +190,14 @@ export default function SellerDashboardScreen() {
                     </TouchableOpacity>
                     <TouchableOpacity 
                       style={styles.actionButton}
-                      onPress={() => router.push(`/seller/edit-product/${product.id}`)}
+                      onPress={() => Alert.alert('Coming Soon', 'Product editing will be available soon')}
                     >
                       <Edit3 size={16} color="#6b7280" strokeWidth={2} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionButton}>
+                    <TouchableOpacity 
+                      style={styles.actionButton}
+                      onPress={() => handleDeleteProduct(product.id, product.name)}
+                    >
                       <Trash2 size={16} color="#ef4444" strokeWidth={2} />
                     </TouchableOpacity>
                   </View>

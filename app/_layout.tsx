@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter, useSegments } from 'expo-router';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useAuth } from '@/hooks/useAuth';
+import { CartProvider } from '@/contexts/CartContext';
 
 export default function RootLayout() {
   useFrameworkReady();
@@ -30,7 +31,7 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <CartProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="auth/login" />
@@ -41,9 +42,11 @@ export default function RootLayout() {
         <Stack.Screen name="seller/enroll" />
         <Stack.Screen name="seller/dashboard" />
         <Stack.Screen name="seller/add-product" />
+        <Stack.Screen name="orders/index" />
+        <Stack.Screen name="orders/[id]" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
-    </>
+    </CartProvider>
   );
 }

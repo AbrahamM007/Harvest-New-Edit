@@ -1,5 +1,23 @@
 import { Tabs } from 'expo-router';
 import { Chrome as Home, Search, ShoppingCart, User } from 'lucide-react-native';
+import { useCart } from '@/contexts/CartContext';
+import { View, Text, StyleSheet } from 'react-native';
+
+function CartTabIcon({ size, color }: { size: number; color: string }) {
+  const { getTotalItems } = useCart();
+  const itemCount = getTotalItems();
+
+  return (
+    <View style={styles.cartIconContainer}>
+      <ShoppingCart size={size} color={color} strokeWidth={2} />
+      {itemCount > 0 && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{itemCount > 99 ? '99+' : itemCount}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
 
 export default function TabLayout() {
   return (
@@ -44,9 +62,7 @@ export default function TabLayout() {
         name="cart"
         options={{
           title: 'Cart',
-          tabBarIcon: ({ size, color }) => (
-            <ShoppingCart size={size} color={color} strokeWidth={2} />
-          ),
+          tabBarIcon: ({ size, color }) => <CartTabIcon size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -61,3 +77,26 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  cartIconContainer: {
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: '#dc2626',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+});

@@ -11,47 +11,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Minus, Plus, Trash2, CreditCard, MapPin } from 'lucide-react-native';
+import { useCart } from '@/contexts/CartContext';
 
 export default function CartScreen() {
   const router = useRouter();
-  // For now, using mock data - in a real app, this would come from a cart context/state
-  const [items, setItems] = useState([
-    {
-      id: 1,
-      name: 'Organic Tomatoes',
-      price: 4.99,
-      quantity: 2,
-      farmer: 'Sarah\'s Garden',
-      image: 'https://images.pexels.com/photos/1327838/pexels-photo-1327838.jpeg?auto=compress&cs=tinysrgb&w=400',
-      unit: 'lb',
-    },
-    {
-      id: 2,
-      name: 'Fresh Lettuce',
-      price: 2.49,
-      quantity: 1,
-      farmer: 'Green Valley Farm',
-      image: 'https://images.pexels.com/photos/1656663/pexels-photo-1656663.jpeg?auto=compress&cs=tinysrgb&w=400',
-      unit: 'head',
-    },
-  ]);
+  const { items, updateQuantity, removeFromCart, getTotalPrice } = useCart();
 
-  const updateQuantity = (id: number, change: number) => {
-    setItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id
-          ? { ...item, quantity: Math.max(0, item.quantity + change) }
-          : item
-      ).filter(item => item.quantity > 0)
-    );
-  };
-
-  const removeItem = (id: number) => {
-    setItems(prevItems => prevItems.filter(item => item.id !== id));
-  };
-
-  const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = getTotalPrice();
   const deliveryFee = 2.99;
+  const serviceFee = 1.50;
   const total = subtotal + deliveryFee;
 
   const handleCheckout = () => {
@@ -80,22 +48,22 @@ export default function CartScreen() {
           {/* Cart Items */}
           <ScrollView style={styles.cartItems} showsVerticalScrollIndicator={false}>
             {items.map((item) => (
-              <View key={item.id} style={styles.cartItem}>
-                <Image source={{ uri: item.image }} style={styles.itemImage} />
+              <View key={item.product.id} style={styles.cartItem}>
+                <Image source={{ uri: item.product.image_url }} style={styles.itemImage} />
                 
                 <View style={styles.itemDetails}>
-                  <Text style={styles.itemName}>{item.name}</Text>
+                  <Text style={styles.itemName}>{item.product.name}</Text>
                   <View style={styles.farmerContainer}>
                     <MapPin size={12} color="#6b7280" strokeWidth={2} />
-                    <Text style={styles.farmerName}>{item.farmer}</Text>
+                    <Text style={styles.farmerName}>{item.product.farmer.farm_name}</Text>
                   </View>
-                  <Text style={styles.itemPrice}>${item.price.toFixed(2)}/{item.unit}</Text>
+                  <Text style={styles.itemPrice}>${item.product.price.toFixed(2)}/{item.product.unit}</Text>
                 </View>
 
                 <View style={styles.quantityControls}>
                   <TouchableOpacity
                     style={styles.quantityButton}
-                    onPress={() => updateQuantity(item.id, -1)}
+                    onPress={() => updateQuantity(item.product.id, item.quantity - 1)}
                   >
                     <Minus size={16} color="#6b7280" strokeWidth={2} />
                   </TouchableOpacity>
@@ -104,7 +72,7 @@ export default function CartScreen() {
                   
                   <TouchableOpacity
                     style={styles.quantityButton}
-                    onPress={() => updateQuantity(item.id, 1)}
+                    onPress={() => updateQuantity(item.product.id, item.quantity + 1)}
                   >
                     <Plus size={16} color="#6b7280" strokeWidth={2} />
                   </TouchableOpacity>
@@ -112,7 +80,7 @@ export default function CartScreen() {
 
                 <TouchableOpacity
                   style={styles.removeButton}
-                  onPress={() => removeItem(item.id)}
+                  onPress={() => removeFromCart(item.product.id)}
                 >
                   <Trash2 size={18} color="#ef4444" strokeWidth={2} />
                 </TouchableOpacity>
@@ -130,9 +98,13 @@ export default function CartScreen() {
               <Text style={styles.summaryLabel}>Delivery Fee</Text>
               <Text style={styles.summaryValue}>${deliveryFee.toFixed(2)}</Text>
             </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Service Fee</Text>
+              <Text style={styles.summaryValue}>${serviceFee.toFixed(2)}</Text>
+            </View>
             <View style={[styles.summaryRow, styles.totalRow]}>
               <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
+              <Text style={styles.totalValue}>${(total + serviceFee).toFixed(2)}</Text>
             </View>
 
             <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>

@@ -14,6 +14,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Search, Filter, MapPin, Star } from 'lucide-react-native';
 import { useProductsByCategory } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
+import { useCart } from '@/contexts/CartContext';
 
 export default function SearchScreen() {
   const router = useRouter();
@@ -25,6 +26,7 @@ export default function SearchScreen() {
 
   const { categories, loading: categoriesLoading } = useCategories();
   const { products, loading: productsLoading } = useProductsByCategory(selectedCategory);
+  const { addToCart } = useCart();
 
   const categoryOptions = ['All', ...categories.map(cat => cat.name)];
 
@@ -117,7 +119,10 @@ export default function SearchScreen() {
                   
                   <View style={styles.priceContainer}>
                     <Text style={styles.price}>{formatPrice(product.price, product.unit)}</Text>
-                    <TouchableOpacity style={styles.addButton}>
+                    <TouchableOpacity 
+                      style={styles.addButton}
+                      onPress={() => addToCart(product)}
+                    >
                       <Text style={styles.addButtonText}>+</Text>
                     </TouchableOpacity>
                   </View>

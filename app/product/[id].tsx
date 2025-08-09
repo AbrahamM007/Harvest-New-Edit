@@ -14,6 +14,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/lib/database.types';
+import { useCart } from '@/contexts/CartContext';
 import { 
   ArrowLeft, 
   Heart, 
@@ -45,6 +46,7 @@ export default function ProductDetailScreen() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { addToCart } = useCart();
 
   useEffect(() => {
     fetchProduct();
@@ -91,8 +93,8 @@ export default function ProductDetailScreen() {
 
   const addToCart = () => {
     if (!product) return;
-    console.log(`Added ${quantity} ${product.name} to cart`);
-    // Add to cart logic here
+    addToCart(product, quantity);
+    router.back();
   };
 
   if (loading) {

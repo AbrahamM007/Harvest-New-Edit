@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
 import { useProfile } from '@/hooks/useProfile';
+import { useCart } from '@/contexts/CartContext';
 
 const { width } = Dimensions.get('window');
 
@@ -24,6 +25,7 @@ export default function HomeScreen() {
   const { products, loading: productsLoading } = useProducts();
   const { categories, loading: categoriesLoading } = useCategories();
   const { profile } = useProfile();
+  const { addToCart } = useCart();
 
   const featuredProducts = products.slice(0, 2);
   const isLoading = productsLoading || categoriesLoading;
@@ -146,7 +148,10 @@ export default function HomeScreen() {
                     
                     <View style={styles.priceContainer}>
                       <Text style={styles.price}>{formatPrice(product.price, product.unit)}</Text>
-                      <TouchableOpacity style={styles.addButton}>
+                      <TouchableOpacity 
+                        style={styles.addButton}
+                        onPress={() => addToCart(product)}
+                      >
                         <Text style={styles.addButtonText}>+</Text>
                       </TouchableOpacity>
                     </View>

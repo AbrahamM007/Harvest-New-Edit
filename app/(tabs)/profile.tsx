@@ -16,7 +16,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useFarmer } from '@/hooks/useFarmer';
 
 const menuItems = [
-  { icon: ShoppingBag, label: 'Order History', color: '#16a34a' },
+  { icon: ShoppingBag, label: 'Order History', color: '#16a34a', route: '/orders' },
   { icon: Heart, label: 'Favorites', color: '#dc2626' },
   { icon: MapPin, label: 'Delivery Address', color: '#2563eb' },
   { icon: CreditCard, label: 'Payment Methods', color: '#7c3aed' },
@@ -56,6 +56,9 @@ export default function ProfileScreen() {
   const handleMenuPress = (item: any) => {
     if (item.route) {
       router.push(item.route);
+    } else {
+      // For items without routes, show coming soon
+      Alert.alert('Coming Soon', 'This feature will be available in a future update');
     }
   };
 

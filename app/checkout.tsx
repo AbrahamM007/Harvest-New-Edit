@@ -11,28 +11,81 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, MapPin, CreditCard, Lock, CircleCheck as CheckCircle, Clock } from 'lucide-react-native';
+import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase';
 
 export default function CheckoutScreen() {
   const router = useRouter();
+  const { items, getTotalPrice, clearCart } = useCart();
+  const { user } = useAuth();
   const [selectedPayment, setSelectedPayment] = useState('card');
   const [deliveryTime, setDeliveryTime] = useState('today');
+  const [loading, setLoading] = useState(false);
 
-  const orderSummary = {
-    subtotal: 13.47,
-    deliveryFee: 2.99,
-    serviceFee: 1.50,
-    total: 17.96,
-  };
+  const subtotal = getTotalPrice();
+  const deliveryFee = 2.99;
+  const serviceFee = 1.50;
+  const total = subtotal + deliveryFee + serviceFee;
 
-  const handlePayment = () => {
-    Alert.alert(
-      'Payment Processing',
-      'Redirecting to secure Stripe payment...',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Continue', onPress: () => console.log('Stripe payment initiated') }
-      ]
-    );
+  const handlePayment = async () => {
+    if (!user) {
+      Alert.alert('Error', 'Please sign in to complete your order');
+      return;
+    }
+
+    if (items.length === 0) {
+      Alert.alert('Error', 'Your cart is empty');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Create order
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: user.id,
+          subtotal,
+          delivery_fee: deliveryFee,
+          service_fee: serviceFee,
+          total,
+          delivery_address: '123 Oak Street, Downtown Community District, 12345',
+          delivery_time: deliveryTime === 'today' ? '2-4 PM' : '9 AM - 12 PM',
+          status: 'pending',
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // Create order items
+      const orderItems = items.map(item => ({
+        order_id: order.id,
+        product_id: item.product.id,
+        quantity: item.quantity,
+        unit_price: item.product.price,
+        total_price: item.product.price * item.quantity,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems);
+
+      if (itemsError) throw itemsError;
+
+      // Clear cart and show success
+      clearCart();
+      Alert.alert(
+        'Order Placed!',
+        'Your order has been successfully placed. You\'ll receive updates on delivery.',
+        [{ text: 'Continue Shopping', onPress: () => router.replace('/(tabs)') }]
+      );
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to place order');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -125,19 +178,19 @@ export default function CheckoutScreen() {
           <View style={styles.summaryCard}>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal</Text>
-              <Text style={styles.summaryValue}>${orderSummary.subtotal.toFixed(2)}</Text>
+              <Text style={styles.summaryValue}>${subtotal.toFixed(2)}</Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Delivery Fee</Text>
-              <Text style={styles.summaryValue}>${orderSummary.deliveryFee.toFixed(2)}</Text>
+              <Text style={styles.summaryValue}>${deliveryFee.toFixed(2)}</Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Service Fee</Text>
-              <Text style={styles.summaryValue}>${orderSummary.serviceFee.toFixed(2)}</Text>
+              <Text style={styles.summaryValue}>${serviceFee.toFixed(2)}</Text>
             </View>
             <View style={[styles.summaryRow, styles.totalRow]}>
               <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalValue}>${orderSummary.total.toFixed(2)}</Text>
+              <Text style={styles.totalValue}>${total.toFixed(2)}</Text>
             </View>
           </View>
         </View>
@@ -145,11 +198,17 @@ export default function CheckoutScreen() {
 
       {/* Checkout Button */}
       <View style={styles.checkoutSection}>
-        <TouchableOpacity style={styles.checkoutButton} onPress={handlePayment}>
+        <TouchableOpacity 
+          style={[styles.checkoutButton, loading && styles.checkoutButtonDisabled]}
+          onPress={handlePayment}
+          disabled={loading}
+        >
           <Lock size={20} color="#ffffff" strokeWidth={2} />
-          <Text style={styles.checkoutButtonText}>Pay ${orderSummary.total.toFixed(2)}</Text>
+          <Text style={styles.checkoutButtonText}>
+            {loading ? 'Processing...' : `Pay $${total.toFixed(2)}`}
+          </Text>
         </TouchableOpacity>
-        <Text style={styles.secureText}>🔒 Secured by Stripe</Text>
+        <Text style={styles.secureText}>🔒 Secure payment processing</Text>
       </View>
     </SafeAreaView>
   );
@@ -347,6 +406,9 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 18,
     fontWeight: '700',
+  },
+  checkoutButtonDisabled: {
+    backgroundColor: '#9ca3af',
   },
   secureText: {
     fontSize: 12,

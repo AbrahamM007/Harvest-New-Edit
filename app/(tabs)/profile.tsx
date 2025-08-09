@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Settings, Heart, ShoppingBag, MapPin, Bell, CreditCard, CircleHelp as HelpCircle, LogOut, ChevronRight, Star, Leaf } from 'lucide-react-native';
+import { Settings, Heart, ShoppingBag, MapPin, Bell, CreditCard, CircleHelp as HelpCircle, LogOut, ChevronRight, Star, Leaf, Edit3, Store } from 'lucide-react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useFarmer } from '@/hooks/useFarmer';
@@ -147,24 +147,23 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
         ) : (
-        {/* Become a Seller */}
-        <View style={styles.sellerSection}>
-          <TouchableOpacity 
-            style={styles.sellerCard}
-            onPress={() => router.push('/seller/enroll')}
-          >
-            <View style={styles.sellerContent}>
-              <Text style={styles.sellerTitle}>Become a Local Seller</Text>
-              <Text style={styles.sellerSubtitle}>
-                Share your homegrown produce with the community
-              </Text>
-            </View>
-            <Image
-              source={{ uri: 'https://images.pexels.com/photos/1459339/pexels-photo-1459339.jpeg?auto=compress&cs=tinysrgb&w=200' }}
-              style={styles.sellerImage}
-            />
-          </TouchableOpacity>
-        </View>
+          <View style={styles.sellerSection}>
+            <TouchableOpacity 
+              style={styles.sellerCard}
+              onPress={() => router.push('/seller/enroll')}
+            >
+              <View style={styles.sellerContent}>
+                <Text style={styles.sellerTitle}>Become a Local Seller</Text>
+                <Text style={styles.sellerSubtitle}>
+                  Share your homegrown produce with the community
+                </Text>
+              </View>
+              <Image
+                source={{ uri: 'https://images.pexels.com/photos/1459339/pexels-photo-1459339.jpeg?auto=compress&cs=tinysrgb&w=200' }}
+                style={styles.sellerImage}
+              />
+            </TouchableOpacity>
+          </View>
         )}
 
         {/* Logout */}

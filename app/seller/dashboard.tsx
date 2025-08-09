@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Plus, Package, DollarSign, TrendingUp, Eye, Edit3, Trash2, AlertCircle } from 'lucide-react-native';
+import { Plus, Package, DollarSign, TrendingUp, Eye, CreditCard as Edit3, Trash2, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { useSellerProducts } from '@/hooks/useSellerProducts';
 import { useFarmer } from '@/hooks/useFarmer';
 

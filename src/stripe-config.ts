@@ -9,11 +9,19 @@ export interface StripeProduct {
 
 export const stripeProducts: StripeProduct[] = [
   {
-    id: 'prod_Sq2wNi7DkhI39p',
-    priceId: 'price_1RuMqB6e93ERT0xHm21dMy4C',
-    name: 'Fruit',
-    description: 'Fresh, delicious fruit from local farmers',
-    price: 0.25,
+    id: 'premium-delivery',
+    priceId: 'price_premium_delivery', // Replace with your actual Stripe price ID
+    name: 'Premium Delivery',
+    description: 'Get priority delivery and exclusive access to premium products',
+    price: 9.99,
+    mode: 'subscription',
+  },
+  {
+    id: 'organic-box',
+    priceId: 'price_organic_box', // Replace with your actual Stripe price ID
+    name: 'Organic Produce Box',
+    description: 'Curated selection of organic fruits and vegetables',
+    price: 29.99,
     mode: 'payment',
   },
 ];

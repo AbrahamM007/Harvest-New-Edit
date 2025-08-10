@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { XCircle, ArrowLeft, Home } from 'lucide-react-native';
+import { Circle as XCircle, ArrowLeft, Chrome as Home } from 'lucide-react-native';
 
 export default function StripeCancelScreen() {
   const router = useRouter();

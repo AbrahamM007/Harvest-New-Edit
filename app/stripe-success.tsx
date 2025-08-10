@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { CircleCheck as CheckCircle, Home, Receipt } from 'lucide-react-native';
+import { CircleCheck as CheckCircle, Chrome as Home, Receipt } from 'lucide-react-native';
 
 export default function StripeSuccessScreen() {
   const router = useRouter();

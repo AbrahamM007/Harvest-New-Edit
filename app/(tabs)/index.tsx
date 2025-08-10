@@ -10,13 +10,15 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MapPin, Star, Clock, Leaf } from 'lucide-react-native';
+import { MapPin, Star, Clock, Leaf, ShoppingCart } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
 import { useProfile } from '@/hooks/useProfile';
 import { useCart } from '@/contexts/CartContext';
+import { useSubscription } from '@/hooks/useSubscription';
+import { stripeProducts } from '@/src/stripe-config';
 
 const { width } = Dimensions.get('window');
 
@@ -26,6 +28,7 @@ export default function HomeScreen() {
   const { categories, loading: categoriesLoading } = useCategories();
   const { profile } = useProfile();
   const { addToCart } = useCart();
+  const { subscription } = useSubscription();
 
   const featuredProducts = products.slice(0, 2);
   const isLoading = productsLoading || categoriesLoading;
@@ -38,6 +41,11 @@ export default function HomeScreen() {
     if (hour < 17) return 'Good afternoon! ☀️';
     return 'Good evening! 🌙';
   };
+
+  const handlePurchaseStripeProduct = (productId: string) => {
+    router.push(`/stripe-checkout?productId=${productId}`);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -51,6 +59,13 @@ export default function HomeScreen() {
               <MapPin size={16} color="#6b7280" strokeWidth={2} />
               <Text style={styles.location}>Downtown Community</Text>
             </View>
+            {subscription && (
+              <View style={styles.subscriptionBadge}>
+                <Text style={styles.subscriptionText}>
+                  Plan: {subscription.subscription_status === 'active' ? 'Premium' : 'Free'}
+                </Text>
+              </View>
+            )}
           </View>
           <TouchableOpacity style={styles.profileButton}>
             <Image
@@ -78,6 +93,29 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         </LinearGradient>
+
+        {/* Stripe Products Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Premium Products</Text>
+          <View style={styles.stripeProductsContainer}>
+            {stripeProducts.map((product) => (
+              <View key={product.id} style={styles.stripeProductCard}>
+                <View style={styles.stripeProductInfo}>
+                  <Text style={styles.stripeProductName}>{product.name}</Text>
+                  <Text style={styles.stripeProductDescription}>{product.description}</Text>
+                  <Text style={styles.stripeProductPrice}>${product.price.toFixed(2)}</Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.purchaseButton}
+                  onPress={() => handlePurchaseStripeProduct(product.id)}
+                >
+                  <ShoppingCart size={16} color="#ffffff" strokeWidth={2} />
+                  <Text style={styles.purchaseButtonText}>Buy Now</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+          </View>
+        </View>
 
         {/* Categories */}
         <View style={styles.section}>
@@ -214,6 +252,18 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontWeight: '500',
   },
+  subscriptionBadge: {
+    backgroundColor: '#dcfce7',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  subscriptionText: {
+    fontSize: 12,
+    color: '#16a34a',
+    fontWeight: '600',
+  },
   profileButton: {
     borderRadius: 20,
     overflow: 'hidden',
@@ -280,6 +330,56 @@ const styles = StyleSheet.create({
   seeAllText: {
     fontSize: 14,
     color: '#16a34a',
+    fontWeight: '600',
+  },
+  stripeProductsContainer: {
+    marginTop: 16,
+    gap: 12,
+  },
+  stripeProductCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  stripeProductInfo: {
+    flex: 1,
+  },
+  stripeProductName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  stripeProductDescription: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  stripeProductPrice: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#16a34a',
+  },
+  purchaseButton: {
+    backgroundColor: '#16a34a',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+  },
+  purchaseButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
     fontWeight: '600',
   },
   categoriesGrid: {

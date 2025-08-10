@@ -47,6 +47,7 @@ export default function RootLayout() {
         <Stack.Screen name="stripe-checkout" />
         <Stack.Screen name="stripe-success" />
         <Stack.Screen name="stripe-cancel" />
+        <Stack.Screen name="subscription-success" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

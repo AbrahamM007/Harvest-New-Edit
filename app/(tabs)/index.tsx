@@ -19,6 +19,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useCart } from '@/contexts/CartContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { stripeProducts } from '@/src/stripe-config';
+import StripeProductCard from '@/components/StripeProductCard';
 
 const { width } = Dimensions.get('window');
 
@@ -97,22 +98,17 @@ export default function HomeScreen() {
         {/* Stripe Products Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Premium Products</Text>
-          <View style={styles.stripeProductsContainer}>
+          <View style={styles.premiumProductsContainer}>
             {stripeProducts.map((product) => (
-              <View key={product.id} style={styles.stripeProductCard}>
-                <View style={styles.stripeProductInfo}>
-                  <Text style={styles.stripeProductName}>{product.name}</Text>
-                  <Text style={styles.stripeProductDescription}>{product.description}</Text>
-                  <Text style={styles.stripeProductPrice}>${product.price.toFixed(2)}</Text>
-                </View>
-                <TouchableOpacity 
-                  style={styles.purchaseButton}
-                  onPress={() => handlePurchaseStripeProduct(product.id)}
-                >
-                  <ShoppingCart size={16} color="#ffffff" strokeWidth={2} />
-                  <Text style={styles.purchaseButtonText}>Buy Now</Text>
-                </TouchableOpacity>
-              </View>
+              <StripeProductCard
+                key={product.id}
+                id={product.id}
+                name={product.name}
+                description={product.description}
+                price={product.price}
+                mode={product.mode}
+                onPurchase={handlePurchaseStripeProduct}
+              />
             ))}
           </View>
         </View>
@@ -332,55 +328,8 @@ const styles = StyleSheet.create({
     color: '#16a34a',
     fontWeight: '600',
   },
-  stripeProductsContainer: {
+  premiumProductsContainer: {
     marginTop: 16,
-    gap: 12,
-  },
-  stripeProductCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  stripeProductInfo: {
-    flex: 1,
-  },
-  stripeProductName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  stripeProductDescription: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 8,
-  },
-  stripeProductPrice: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#16a34a',
-  },
-  purchaseButton: {
-    backgroundColor: '#16a34a',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6,
-  },
-  purchaseButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
   },
   categoriesGrid: {
     flexDirection: 'row',

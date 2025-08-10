@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, MapPin, CreditCard, Lock, CircleCheck as CheckCircle, Clock } from 'lucide-react-native';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/lib/supabase';
+import * as WebBrowser from 'expo-web-browser';
 
 export default function CheckoutScreen() {
   const router = useRouter();
@@ -41,46 +41,37 @@ export default function CheckoutScreen() {
 
     setLoading(true);
     try {
-      // Create order
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          user_id: user.id,
-          subtotal,
+      // Create Stripe checkout session
+      const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: items.map(item => ({
+            product_id: item.product.id,
+            name: item.product.name,
+            price: item.product.price,
+            quantity: item.quantity,
+            image_url: item.product.image_url,
+          })),
           delivery_fee: deliveryFee,
           service_fee: serviceFee,
-          total,
           delivery_address: '123 Oak Street, Downtown Community District, 12345',
           delivery_time: deliveryTime === 'today' ? '2-4 PM' : '9 AM - 12 PM',
-          status: 'pending',
-        })
-        .select()
-        .single();
+        }),
+      });
 
-      if (orderError) throw orderError;
+      const data = await response.json();
 
-      // Create order items
-      const orderItems = items.map(item => ({
-        order_id: order.id,
-        product_id: item.product.id,
-        quantity: item.quantity,
-        unit_price: item.product.price,
-        total_price: item.product.price * item.quantity,
-      }));
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) throw itemsError;
-
-      // Clear cart and show success
-      clearCart();
-      Alert.alert(
-        'Order Placed!',
-        'Your order has been successfully placed. You\'ll receive updates on delivery.',
-        [{ text: 'Continue Shopping', onPress: () => router.replace('/(tabs)') }]
-      );
+      if (data.url) {
+        await WebBrowser.openBrowserAsync(data.url);
+      }
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to place order');
     } finally {
@@ -164,10 +155,16 @@ export default function CheckoutScreen() {
             onPress={() => setSelectedPayment('card')}
           >
             <CreditCard size={20} color="#16a34a" strokeWidth={2} />
-            <View style={styles.paymentInfo}>
-              <Text style={styles.paymentTitle}>Credit/Debit Card</Text>
-              <Text style={styles.paymentSubtitle}>Secure payment via Stripe</Text>
-            </View>
+            {loading ? (
+              <>
+                <Text style={styles.checkoutButtonText}>Creating checkout...</Text>
+              </>
+            ) : (
+              <>
+                <Lock size={20} color="#ffffff" strokeWidth={2} />
+                <Text style={styles.checkoutButtonText}>Pay $${total.toFixed(2)}</Text>
+              </>
+            )}
             <Lock size={16} color="#6b7280" strokeWidth={2} />
           </TouchableOpacity>
         </View>

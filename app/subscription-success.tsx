@@ -8,19 +8,16 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { CircleCheck as CheckCircle, Chrome as Home, Receipt } from 'lucide-react-native';
-import { useCart } from '@/contexts/CartContext';
+import { Crown, Chrome as Home, Settings } from 'lucide-react-native';
 
-export default function StripeSuccessScreen() {
+export default function SubscriptionSuccessScreen() {
   const router = useRouter();
   const { session_id } = useLocalSearchParams();
-  const { clearCart } = useCart();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Clear cart after successful payment and simulate processing time
+    // Simulate loading time for processing
     const timer = setTimeout(() => {
-      clearCart();
       setLoading(false);
     }, 2000);
 
@@ -31,8 +28,8 @@ export default function StripeSuccessScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#16a34a" />
-          <Text style={styles.loadingText}>Processing your payment...</Text>
+          <ActivityIndicator size="large" color="#7c3aed" />
+          <Text style={styles.loadingText}>Setting up your subscription...</Text>
         </View>
       </SafeAreaView>
     );
@@ -42,20 +39,21 @@ export default function StripeSuccessScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.successIcon}>
-          <CheckCircle size={64} color="#16a34a" strokeWidth={2} />
+          <Crown size={64} color="#7c3aed" strokeWidth={2} />
         </View>
         
-        <Text style={styles.successTitle}>Payment Successful!</Text>
+        <Text style={styles.successTitle}>Welcome to Premium!</Text>
         <Text style={styles.successMessage}>
-          Thank you for your purchase. Your payment has been processed successfully.
+          Your subscription is now active. Enjoy priority delivery and exclusive access to premium products.
         </Text>
 
-        {session_id && (
-          <View style={styles.sessionInfo}>
-            <Text style={styles.sessionLabel}>Session ID:</Text>
-            <Text style={styles.sessionId}>{session_id}</Text>
-          </View>
-        )}
+        <View style={styles.benefits}>
+          <Text style={styles.benefitsTitle}>Your Premium Benefits:</Text>
+          <Text style={styles.benefit}>✨ Priority delivery slots</Text>
+          <Text style={styles.benefit}>🌟 Exclusive premium products</Text>
+          <Text style={styles.benefit}>📦 Free delivery on all orders</Text>
+          <Text style={styles.benefit}>🎯 Early access to seasonal items</Text>
+        </View>
 
         <View style={styles.actions}>
           <TouchableOpacity 
@@ -63,15 +61,15 @@ export default function StripeSuccessScreen() {
             onPress={() => router.replace('/(tabs)')}
           >
             <Home size={20} color="#ffffff" strokeWidth={2} />
-            <Text style={styles.primaryButtonText}>Back to Home</Text>
+            <Text style={styles.primaryButtonText}>Start Shopping</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.secondaryButton}
-            onPress={() => router.push('/orders')}
+            onPress={() => router.push('/(tabs)/profile')}
           >
-            <Receipt size={20} color="#16a34a" strokeWidth={2} />
-            <Text style={styles.secondaryButtonText}>View Orders</Text>
+            <Settings size={20} color="#7c3aed" strokeWidth={2} />
+            <Text style={styles.secondaryButtonText}>Manage Subscription</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -117,34 +115,31 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginBottom: 32,
   },
-  sessionInfo: {
+  benefits: {
     backgroundColor: '#ffffff',
     borderRadius: 12,
-    padding: 16,
+    padding: 20,
     marginBottom: 32,
     width: '100%',
-    alignItems: 'center',
   },
-  sessionLabel: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 4,
-  },
-  sessionId: {
-    fontSize: 12,
+  benefitsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#111827',
-    fontFamily: 'monospace',
-    backgroundColor: '#f3f4f6',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    marginBottom: 12,
+  },
+  benefit: {
+    fontSize: 14,
+    color: '#374151',
+    marginBottom: 8,
+    lineHeight: 20,
   },
   actions: {
     width: '100%',
     gap: 12,
   },
   primaryButton: {
-    backgroundColor: '#16a34a',
+    backgroundColor: '#7c3aed',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -169,7 +164,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   secondaryButtonText: {
-    color: '#16a34a',
+    color: '#7c3aed',
     fontSize: 16,
     fontWeight: '600',
   },

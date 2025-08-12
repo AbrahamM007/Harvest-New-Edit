@@ -31,10 +31,12 @@ export default function SellerDashboardScreen() {
     subscribeToPremium,
     loading: stripeLoading 
   } = useStripeConnect();
+  const { conversations } = useConversations();
 
   const totalRevenue = products.reduce((sum, product) => sum + (product.price * 10), 0); // Mock sales
   const totalProducts = products.length;
   const activeProducts = products.filter(p => p.is_available).length;
+  const unreadMessages = conversations.reduce((sum, conv) => sum + (conv.unread_count || 0), 0);
 
   const handleDeleteProduct = async (productId: string, productName: string) => {
     Alert.alert(
@@ -168,6 +170,11 @@ export default function SellerDashboardScreen() {
             <Text style={styles.statNumber}>{activeProducts}</Text>
             <Text style={styles.statLabel}>Active Listings</Text>
           </View>
+          <View style={styles.statCard}>
+            <MessageCircle size={24} color="#7c3aed" strokeWidth={2} />
+            <Text style={styles.statNumber}>{unreadMessages}</Text>
+            <Text style={styles.statLabel}>New Messages</Text>
+          </View>
         </View>
 
         {/* Stripe Connect Status */}
@@ -179,6 +186,32 @@ export default function SellerDashboardScreen() {
           onSetupBilling={handleSetupBilling}
           onSubscribePremium={handlePremiumSubscription}
         />
+
+        {/* Quick Actions */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.quickActions}>
+            <TouchableOpacity 
+              style={styles.quickActionCard}
+              onPress={() => router.push('/chat')}
+            >
+              <MessageCircle size={24} color="#7c3aed" strokeWidth={2} />
+              <Text style={styles.quickActionTitle}>Messages</Text>
+              <Text style={styles.quickActionSubtitle}>
+                {unreadMessages > 0 ? `${unreadMessages} unread` : 'No new messages'}
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.quickActionCard}
+              onPress={() => router.push('/seller/add-product')}
+            >
+              <Plus size={24} color="#16a34a" strokeWidth={2} />
+              <Text style={styles.quickActionTitle}>Add Product</Text>
+              <Text style={styles.quickActionSubtitle}>List new produce</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {/* Products Section */}
         <View style={styles.section}>
@@ -296,7 +329,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    gap: 12,
+    gap: 8,
   },
   statCard: {
     flex: 1,
@@ -318,6 +351,30 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   statLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
+  },
+  quickActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  quickActionCard: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  quickActionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  quickActionSubtitle: {
     fontSize: 12,
     color: '#6b7280',
     textAlign: 'center',

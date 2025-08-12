@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
-import { Chrome as Home, Search, ShoppingCart, User } from 'lucide-react-native';
+import { Chrome as Home, Search, ShoppingCart, User, MessageCircle } from 'lucide-react-native';
 import { useCart } from '@/contexts/CartContext';
+import { useConversations } from '@/hooks/useConversations';
 import { View, Text, StyleSheet } from 'react-native';
 
 function CartTabIcon({ size, color }: { size: number; color: string }) {
@@ -13,6 +14,22 @@ function CartTabIcon({ size, color }: { size: number; color: string }) {
       {itemCount > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{itemCount > 99 ? '99+' : itemCount}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function ChatTabIcon({ size, color }: { size: number; color: string }) {
+  const { conversations } = useConversations();
+  const unreadCount = conversations.reduce((sum, conv) => sum + (conv.unread_count || 0), 0);
+
+  return (
+    <View style={styles.cartIconContainer}>
+      <MessageCircle size={size} color={color} strokeWidth={2} />
+      {unreadCount > 0 && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
         </View>
       )}
     </View>
@@ -63,6 +80,13 @@ export default function TabLayout() {
         options={{
           title: 'Cart',
           tabBarIcon: ({ size, color }) => <CartTabIcon size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="chat"
+        options={{
+          title: 'Messages',
+          tabBarIcon: ({ size, color }) => <ChatTabIcon size={size} color={color} />,
         }}
       />
       <Tabs.Screen

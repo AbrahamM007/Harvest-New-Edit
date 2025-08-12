@@ -44,6 +44,8 @@ export default function RootLayout() {
         <Stack.Screen name="seller/add-product" />
         <Stack.Screen name="orders/index" />
         <Stack.Screen name="orders/[id]" />
+        <Stack.Screen name="chat/index" />
+        <Stack.Screen name="chat/[id]" />
         <Stack.Screen name="stripe-checkout" />
         <Stack.Screen name="stripe-success" />
         <Stack.Screen name="stripe-cancel" />

@@ -70,6 +70,8 @@ export default function CheckoutScreen() {
       }
 
       if (data.url) {
+        // Clear cart after successful checkout initiation
+        clearCart();
         await WebBrowser.openBrowserAsync(data.url);
       }
     } catch (error) {

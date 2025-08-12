@@ -432,4 +432,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
+  contactButton: {
+    backgroundColor: '#ffffff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#16a34a',
+    gap: 8,
+    marginTop: 12,
+  },
+  contactButtonText: {
+    color: '#16a34a',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });

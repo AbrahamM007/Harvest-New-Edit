@@ -11,12 +11,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Settings, Heart, ShoppingBag, MapPin, Bell, CreditCard, CircleHelp as HelpCircle, LogOut, ChevronRight, Star, Leaf, CreditCard as Edit3, Store } from 'lucide-react-native';
+import { MessageCircle } from 'lucide-react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useFarmer } from '@/hooks/useFarmer';
 
 const menuItems = [
   { icon: ShoppingBag, label: 'Order History', color: '#16a34a', route: '/orders' },
+  { icon: MessageCircle, label: 'Messages', color: '#7c3aed', route: '/chat' },
   { icon: Heart, label: 'Favorites', color: '#dc2626' },
   { icon: MapPin, label: 'Delivery Address', color: '#2563eb' },
   { icon: CreditCard, label: 'Payment Methods', color: '#7c3aed' },

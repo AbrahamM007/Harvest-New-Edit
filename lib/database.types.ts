@@ -32,6 +32,193 @@ export interface Database {
           created_at?: string
         }
       }
+      vendor_stripe_accounts: {
+        Row: {
+          id: string
+          farmer_id: string
+          stripe_account_id: string
+          account_status: 'pending' | 'restricted' | 'enabled' | 'rejected'
+          charges_enabled: boolean
+          payouts_enabled: boolean
+          details_submitted: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          farmer_id: string
+          stripe_account_id: string
+          account_status?: 'pending' | 'restricted' | 'enabled' | 'rejected'
+          charges_enabled?: boolean
+          payouts_enabled?: boolean
+          details_submitted?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          farmer_id?: string
+          stripe_account_id?: string
+          account_status?: 'pending' | 'restricted' | 'enabled' | 'rejected'
+          charges_enabled?: boolean
+          payouts_enabled?: boolean
+          details_submitted?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      vendor_platform_customers: {
+        Row: {
+          id: string
+          farmer_id: string
+          stripe_customer_id: string
+          default_payment_method_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          farmer_id: string
+          stripe_customer_id: string
+          default_payment_method_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          farmer_id?: string
+          stripe_customer_id?: string
+          default_payment_method_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      vendor_subscriptions: {
+        Row: {
+          id: string
+          farmer_id: string
+          stripe_subscription_id: string | null
+          status: 'inactive' | 'active' | 'past_due' | 'canceled' | 'incomplete'
+          current_period_start: string | null
+          current_period_end: string | null
+          cancel_at_period_end: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          farmer_id: string
+          stripe_subscription_id?: string | null
+          status?: 'inactive' | 'active' | 'past_due' | 'canceled' | 'incomplete'
+          current_period_start?: string | null
+          current_period_end?: string | null
+          cancel_at_period_end?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          farmer_id?: string
+          stripe_subscription_id?: string | null
+          status?: 'inactive' | 'active' | 'past_due' | 'canceled' | 'incomplete'
+          current_period_start?: string | null
+          current_period_end?: string | null
+          cancel_at_period_end?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      seasonal_ledgers: {
+        Row: {
+          id: string
+          farmer_id: string
+          season_year: number
+          season_name: string
+          gross_sales: number
+          refunds: number
+          net_sales: number
+          discount_amount: number
+          hosting_fee_due: number
+          hosting_invoice_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          farmer_id: string
+          season_year: number
+          season_name: string
+          gross_sales?: number
+          refunds?: number
+          net_sales?: number
+          discount_amount?: number
+          hosting_fee_due?: number
+          hosting_invoice_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          farmer_id?: string
+          season_year?: number
+          season_name?: string
+          gross_sales?: number
+          refunds?: number
+          net_sales?: number
+          discount_amount?: number
+          hosting_fee_due?: number
+          hosting_invoice_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      marketplace_orders: {
+        Row: {
+          id: string
+          user_id: string
+          farmer_id: string
+          stripe_payment_intent_id: string
+          stripe_checkout_session_id: string | null
+          application_fee_amount: number
+          transfer_amount: number
+          total_amount: number
+          currency: string
+          status: string
+          metadata: any
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          farmer_id: string
+          stripe_payment_intent_id: string
+          stripe_checkout_session_id?: string | null
+          application_fee_amount: number
+          transfer_amount: number
+          total_amount: number
+          currency?: string
+          status?: string
+          metadata?: any
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          farmer_id?: string
+          stripe_payment_intent_id?: string
+          stripe_checkout_session_id?: string | null
+          application_fee_amount?: number
+          transfer_amount?: number
+          total_amount?: number
+          currency?: string
+          status?: string
+          metadata?: any
+          created_at?: string
+          updated_at?: string
+        }
+      }
       farmers: {
         Row: {
           id: string

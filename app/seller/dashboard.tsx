@@ -14,12 +14,23 @@ import { useRouter } from 'expo-router';
 import { Plus, Package, DollarSign, TrendingUp, Eye, CreditCard as Edit3, Trash2, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { useSellerProducts } from '@/hooks/useSellerProducts';
 import { useFarmer } from '@/hooks/useFarmer';
+import { useStripeConnect } from '@/hooks/useStripeConnect';
+import ConnectStatusCard from '@/components/ConnectStatusCard';
 import { supabase } from '@/lib/supabase';
 
 export default function SellerDashboardScreen() {
   const router = useRouter();
   const { farmer, loading: farmerLoading } = useFarmer();
   const { products, loading: productsLoading } = useSellerProducts();
+  const { 
+    connectAccount, 
+    platformCustomer, 
+    vendorSubscription,
+    createConnectAccount,
+    setupBilling,
+    subscribeToPremium,
+    loading: stripeLoading 
+  } = useStripeConnect();
 
   const totalRevenue = products.reduce((sum, product) => sum + (product.price * 10), 0); // Mock sales
   const totalProducts = products.length;
@@ -85,6 +96,30 @@ export default function SellerDashboardScreen() {
     );
   }
 
+  const handleStripeOnboarding = async () => {
+    try {
+      await createConnectAccount();
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to start onboarding');
+    }
+  };
+
+  const handleSetupBilling = async () => {
+    try {
+      await setupBilling();
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to setup billing');
+    }
+  };
+
+  const handlePremiumSubscription = async () => {
+    try {
+      await subscribeToPremium();
+    } catch (error) {
+      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to setup premium');
+    }
+  };
+
   if (!farmer.verified) {
     return (
       <SafeAreaView style={styles.container}>
@@ -134,6 +169,16 @@ export default function SellerDashboardScreen() {
             <Text style={styles.statLabel}>Active Listings</Text>
           </View>
         </View>
+
+        {/* Stripe Connect Status */}
+        <ConnectStatusCard
+          connectAccount={connectAccount}
+          platformCustomer={platformCustomer}
+          vendorSubscription={vendorSubscription}
+          onSetupPayments={handleStripeOnboarding}
+          onSetupBilling={handleSetupBilling}
+          onSubscribePremium={handlePremiumSubscription}
+        />
 
         {/* Products Section */}
         <View style={styles.section}>

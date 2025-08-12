@@ -41,8 +41,8 @@ export default function CheckoutScreen() {
 
     setLoading(true);
     try {
-      // Create Stripe checkout session
-      const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/create-checkout-session`, {
+      // Create marketplace checkout session with Connect
+      const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/marketplace-checkout`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
@@ -51,13 +51,13 @@ export default function CheckoutScreen() {
         body: JSON.stringify({
           items: items.map(item => ({
             product_id: item.product.id,
+            farmer_id: item.product.farmer_id,
             name: item.product.name,
+            description: item.product.description,
             price: item.product.price,
             quantity: item.quantity,
             image_url: item.product.image_url,
           })),
-          delivery_fee: deliveryFee,
-          service_fee: serviceFee,
           delivery_address: '123 Oak Street, Downtown Community District, 12345',
           delivery_time: deliveryTime === 'today' ? '2-4 PM' : '9 AM - 12 PM',
         }),

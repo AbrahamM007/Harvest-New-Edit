@@ -10,13 +10,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   Switch,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Package, DollarSign, Hash, FileText, Image as ImageIcon, Calendar, Leaf } from 'lucide-react-native';
+import { ArrowLeft, Package, DollarSign, Hash, FileText, Image as ImageIcon, Calendar, Leaf, Camera, Upload } from 'lucide-react-native';
 import { supabase } from '@/lib/supabase';
 import { useCategories } from '@/hooks/useCategories';
 import { useFarmer } from '@/hooks/useFarmer';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function AddProductScreen() {
   const router = useRouter();
@@ -27,6 +29,7 @@ export default function AddProductScreen() {
   const [price, setPrice] = useState('');
   const [unit, setUnit] = useState('lb');
   const [imageUrl, setImageUrl] = useState('');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [availableQuantity, setAvailableQuantity] = useState('');
   const [harvestDate, setHarvestDate] = useState('');
   const [isOrganic, setIsOrganic] = useState(false);
@@ -35,9 +38,51 @@ export default function AddProductScreen() {
 
   const units = ['lb', 'kg', 'oz', 'bunch', 'head', 'bag', 'box', 'each'];
 
+  const pickImage = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please grant camera roll permissions to upload images');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setSelectedImage(result.assets[0].uri);
+      // In a real app, you would upload this to a storage service
+      // For now, we'll use a placeholder URL
+      setImageUrl('https://images.pexels.com/photos/1327838/pexels-photo-1327838.jpeg?auto=compress&cs=tinysrgb&w=800');
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please grant camera permissions to take photos');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setSelectedImage(result.assets[0].uri);
+      // In a real app, you would upload this to a storage service
+      setImageUrl('https://images.pexels.com/photos/1327838/pexels-photo-1327838.jpeg?auto=compress&cs=tinysrgb&w=800');
+    }
+  };
+
   const handleAddProduct = async () => {
-    if (!name.trim() || !price || !imageUrl.trim()) {
-      Alert.alert('Error', 'Please fill in name, price, and image URL');
+    if (!name.trim() || !price || (!imageUrl.trim() && !selectedImage)) {
+      Alert.alert('Error', 'Please fill in name, price, and add an image');
       return;
     }
 
@@ -46,8 +91,15 @@ export default function AddProductScreen() {
       return;
     }
 
+    const priceValue = parseFloat(price);
+    if (isNaN(priceValue) || priceValue <= 0) {
+      Alert.alert('Error', 'Please enter a valid price');
+      return;
+    }
     setLoading(true);
     try {
+      const finalImageUrl = selectedImage || imageUrl.trim();
+      
       const { error } = await supabase
         .from('products')
         .insert({
@@ -55,9 +107,9 @@ export default function AddProductScreen() {
           category_id: selectedCategory || null,
           name: name.trim(),
           description: description.trim() || null,
-          price: parseFloat(price),
+          price: priceValue,
           unit,
-          image_url: imageUrl.trim(),
+          image_url: finalImageUrl,
           available_quantity: availableQuantity ? parseInt(availableQuantity) : 0,
           harvest_date: harvestDate || null,
           is_organic: isOrganic,
@@ -170,19 +222,48 @@ export default function AddProductScreen() {
               </View>
             </View>
 
-            {/* Image URL */}
+            {/* Product Image */}
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Image URL *</Text>
-              <View style={styles.inputWrapper}>
-                <ImageIcon size={20} color="#6b7280" strokeWidth={2} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="https://example.com/image.jpg"
-                  value={imageUrl}
-                  onChangeText={setImageUrl}
-                  autoCapitalize="none"
-                  placeholderTextColor="#9ca3af"
-                />
+              <Text style={styles.label}>Product Image *</Text>
+              
+              {selectedImage ? (
+                <View style={styles.imagePreview}>
+                  <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+                  <TouchableOpacity 
+                    style={styles.changeImageButton}
+                    onPress={() => setSelectedImage(null)}
+                  >
+                    <Text style={styles.changeImageText}>Change Image</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={styles.imageUploadContainer}>
+                  <TouchableOpacity style={styles.imageUploadButton} onPress={takePhoto}>
+                    <Camera size={24} color="#6b7280" strokeWidth={2} />
+                    <Text style={styles.imageUploadText}>Take Photo</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity style={styles.imageUploadButton} onPress={pickImage}>
+                    <Upload size={24} color="#6b7280" strokeWidth={2} />
+                    <Text style={styles.imageUploadText}>Choose from Gallery</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              
+              {/* Fallback URL input */}
+              <View style={styles.urlInputWrapper}>
+                <Text style={styles.urlLabel}>Or enter image URL:</Text>
+                <View style={styles.inputWrapper}>
+                  <ImageIcon size={20} color="#6b7280" strokeWidth={2} />
+                  <TextInput
+                    style={styles.input}
+                    placeholder="https://example.com/image.jpg"
+                    value={imageUrl}
+                    onChangeText={setImageUrl}
+                    autoCapitalize="none"
+                    placeholderTextColor="#9ca3af"
+                  />
+                </View>
               </View>
             </View>
 
@@ -472,5 +553,55 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 18,
     fontWeight: '700',
+  },
+  imagePreview: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  previewImage: {
+    width: 200,
+    height: 150,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  changeImageButton: {
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  changeImageText: {
+    color: '#6b7280',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  imageUploadContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  imageUploadButton: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+    borderStyle: 'dashed',
+    borderRadius: 12,
+    paddingVertical: 24,
+    alignItems: 'center',
+    gap: 8,
+  },
+  imageUploadText: {
+    fontSize: 14,
+    color: '#6b7280',
+    fontWeight: '600',
+  },
+  urlInputWrapper: {
+    marginTop: 16,
+  },
+  urlLabel: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 8,
   },
 });

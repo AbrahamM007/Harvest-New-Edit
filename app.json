@@ -20,7 +20,8 @@
       "buildNumber": "1.0.0",
       "infoPlist": {
         "NSCameraUsageDescription": "This app uses the camera to take photos of products",
-        "NSPhotoLibraryUsageDescription": "This app accesses the photo library to select images"
+        "NSPhotoLibraryUsageDescription": "This app accesses the photo library to select images",
+        "NSLocationWhenInUseUsageDescription": "This app uses location to show nearby farmers and products"
       }
     },
     "android": {
@@ -33,7 +34,8 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "web": {

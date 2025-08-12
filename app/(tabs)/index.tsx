@@ -20,6 +20,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import { stripeProducts } from '@/src/stripe-config';
 import StripeProductCard from '@/components/StripeProductCard';
+import { useLocation } from '@/hooks/useLocation';
 
 const { width } = Dimensions.get('window');
 
@@ -30,6 +31,7 @@ export default function HomeScreen() {
   const { profile } = useProfile();
   const { addToCart } = useCart();
   const { subscription } = useSubscription();
+  const { location, loading: locationLoading } = useLocation();
 
   const featuredProducts = products.slice(0, 2);
   const isLoading = productsLoading || categoriesLoading;
@@ -58,7 +60,9 @@ export default function HomeScreen() {
             </Text>
             <View style={styles.locationContainer}>
               <MapPin size={16} color="#6b7280" strokeWidth={2} />
-              <Text style={styles.location}>Downtown Community</Text>
+              <Text style={styles.location}>
+                {location ? 'Your Neighborhood' : 'Location Loading...'}
+              </Text>
             </View>
             {subscription && (
               <View style={styles.subscriptionBadge}>
@@ -87,7 +91,7 @@ export default function HomeScreen() {
             <Leaf size={32} color="#ffffff" strokeWidth={2} />
             <Text style={styles.heroTitle}>Fresh from your neighbors</Text>
             <Text style={styles.heroSubtitle}>
-              Support local farmers and enjoy the freshest produce in your community
+              Discover fresh produce from farmers in your neighborhood
             </Text>
             <TouchableOpacity style={styles.heroButton}>
               <Text style={styles.heroButtonText}>Shop Local</Text>
@@ -139,7 +143,7 @@ export default function HomeScreen() {
         {/* Featured Products */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Fresh Today</Text>
+            <Text style={styles.sectionTitle}>Nearest to You</Text>
             <TouchableOpacity onPress={() => router.push('/(tabs)/search')}>
               <Text style={styles.seeAllText}>See all</Text>
             </TouchableOpacity>
@@ -176,7 +180,9 @@ export default function HomeScreen() {
                       </View>
                       <View style={styles.distanceContainer}>
                         <MapPin size={12} color="#6b7280" strokeWidth={2} />
-                        <Text style={styles.distance}>1.2 miles</Text>
+                        <Text style={styles.distance}>
+                          {product.distance_miles ? `${product.distance_miles.toFixed(1)} mi` : 'Nearby'}
+                        </Text>
                       </View>
                     </View>
                     

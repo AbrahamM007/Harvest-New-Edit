@@ -15,6 +15,8 @@ import { Plus, Package, DollarSign, TrendingUp, Eye, CreditCard as Edit3, Trash2
 import { useSellerProducts } from '@/hooks/useSellerProducts';
 import { useFarmer } from '@/hooks/useFarmer';
 import { useStripeConnect } from '@/hooks/useStripeConnect';
+import { useConversations } from '@/hooks/useConversations';
+import { MessageCircle } from 'lucide-react-native';
 import ConnectStatusCard from '@/components/ConnectStatusCard';
 import { supabase } from '@/lib/supabase';
 
@@ -123,17 +125,8 @@ export default function SellerDashboardScreen() {
   };
 
   if (!farmer.verified) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.pendingContainer}>
-          <AlertCircle size={48} color="#f59e0b" strokeWidth={2} />
-          <Text style={styles.pendingTitle}>Application Under Review</Text>
-          <Text style={styles.pendingText}>
-            Your seller application is being reviewed. You'll be notified once approved.
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
+    // Auto-approve farmers - this should not happen with new auto-approval system
+    console.warn('Farmer not verified - this should not happen with auto-approval');
   }
 
   return (

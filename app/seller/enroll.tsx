@@ -53,7 +53,7 @@ export default function SellerEnrollScreen() {
 
       Alert.alert(
         'Application Submitted!',
-        'Your seller application has been submitted for review. You\'ll be notified once approved.',
+        'Welcome to Harvest! Your seller account is now active. You can start adding products immediately.',
         [{ text: 'Continue', onPress: () => router.replace('/seller/dashboard') }]
       );
     } catch (error) {
@@ -157,10 +157,10 @@ export default function SellerEnrollScreen() {
             <View style={styles.infoBox}>
               <Text style={styles.infoTitle}>What happens next?</Text>
               <Text style={styles.infoText}>
-                • Your application will be reviewed within 24-48 hours{'\n'}
-                • We'll verify your farm information{'\n'}
-                • Once approved, you can start listing products{'\n'}
-                • You'll receive email notifications about your application status
+                • Your seller account will be activated immediately{'\n'}
+                • You can start listing products right away{'\n'}
+                • Set up Stripe Connect to receive payments{'\n'}
+                • Upload photos and set your own prices
               </Text>
             </View>
 

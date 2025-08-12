@@ -33,7 +33,7 @@ export default function SearchScreen() {
   const filteredProducts = products.filter(product => {
     return product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
            product.farmer.farm_name.toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  }).sort((a, b) => (a.distance_miles || 999) - (b.distance_miles || 999)); // Sort by distance
 
   const formatPrice = (price: number, unit: string) => `$${price.toFixed(2)}/${unit}`;
   const isLoading = categoriesLoading || productsLoading;
@@ -42,7 +42,7 @@ export default function SearchScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Browse Local Produce</Text>
+        <Text style={styles.title}>Nearby Farmers</Text>
         <TouchableOpacity style={styles.filterButton}>
           <Filter size={20} color="#374151" strokeWidth={2} />
         </TouchableOpacity>
@@ -54,7 +54,7 @@ export default function SearchScreen() {
           <Search size={20} color="#6b7280" strokeWidth={2} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search for fresh produce..."
+            placeholder="Search nearby farmers and produce..."
             value={searchQuery}
             onChangeText={setSearchQuery}
             placeholderTextColor="#9ca3af"
@@ -113,7 +113,9 @@ export default function SearchScreen() {
                     </View>
                     <View style={styles.distanceContainer}>
                       <MapPin size={10} color="#6b7280" strokeWidth={2} />
-                      <Text style={styles.distance}>1.2 miles</Text>
+                      <Text style={styles.distance}>
+                        {product.distance_miles ? `${product.distance_miles.toFixed(1)} mi` : 'Nearby'}
+                      </Text>
                     </View>
                   </View>
                   

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from './useAuth';
 import type { Database } from '@/lib/database.types';
 
 type Product = Database['public']['Tables']['products']['Row'] & {
@@ -7,9 +8,11 @@ type Product = Database['public']['Tables']['products']['Row'] & {
   category: Database['public']['Tables']['categories']['Row'] | null;
   average_rating?: number;
   review_count?: number;
+  distance_miles?: number;
 };
 
 export function useProducts() {
+  const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +29,8 @@ export function useProducts() {
           reviews(rating)
         `)
         .eq('is_available', true)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(20);
 
       if (error) throw error;
 
@@ -37,7 +41,11 @@ export function useProducts() {
           ? product.reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / product.reviews.length
           : 0,
         review_count: product.reviews?.length || 0,
+        distance_miles: Math.random() * 5 + 0.5, // Mock distance for now
       })) || [];
+
+      // Sort by distance (nearest first)
+      productsWithRatings.sort((a, b) => (a.distance_miles || 999) - (b.distance_miles || 999));
 
       setProducts(productsWithRatings);
     } catch (err) {
@@ -49,12 +57,13 @@ export function useProducts() {
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [user]);
 
   return { products, loading, error, refetch: fetchProducts };
 }
 
 export function useProductsByCategory(categoryName?: string) {
+  const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -87,7 +96,11 @@ export function useProductsByCategory(categoryName?: string) {
           ? product.reviews.reduce((sum: number, review: any) => sum + review.rating, 0) / product.reviews.length
           : 0,
         review_count: product.reviews?.length || 0,
+        distance_miles: Math.random() * 5 + 0.5, // Mock distance for now
       })) || [];
+
+      // Sort by distance (nearest first)
+      productsWithRatings.sort((a, b) => (a.distance_miles || 999) - (b.distance_miles || 999));
 
       setProducts(productsWithRatings);
     } catch (err) {
@@ -99,7 +112,7 @@ export function useProductsByCategory(categoryName?: string) {
 
   useEffect(() => {
     fetchProducts();
-  }, [categoryName]);
+  }, [categoryName, user]);
 
   return { products, loading, error, refetch: fetchProducts };
 }

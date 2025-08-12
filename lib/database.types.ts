@@ -431,6 +431,8 @@ export interface Database {
           verified: boolean
           created_at: string
           updated_at: string
+          latitude: number | null
+          longitude: number | null
         }
         Insert: {
           id?: string
@@ -442,6 +444,8 @@ export interface Database {
           verified?: boolean
           created_at?: string
           updated_at?: string
+          latitude?: number | null
+          longitude?: number | null
         }
         Update: {
           id?: string
@@ -453,6 +457,8 @@ export interface Database {
           verified?: boolean
           created_at?: string
           updated_at?: string
+          latitude?: number | null
+          longitude?: number | null
         }
       }
       order_items: {
@@ -583,6 +589,8 @@ export interface Database {
           avatar_url: string | null
           created_at: string
           updated_at: string
+          latitude: number | null
+          longitude: number | null
         }
         Insert: {
           id: string
@@ -591,6 +599,8 @@ export interface Database {
           avatar_url?: string | null
           created_at?: string
           updated_at?: string
+          latitude?: number | null
+          longitude?: number | null
         }
         Update: {
           id?: string
@@ -599,6 +609,8 @@ export interface Database {
           avatar_url?: string | null
           created_at?: string
           updated_at?: string
+          latitude?: number | null
+          longitude?: number | null
         }
       }
       reviews: {

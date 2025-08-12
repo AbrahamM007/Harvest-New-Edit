@@ -170,7 +170,9 @@ export default function ProductDetailScreen() {
           
           <View style={styles.farmerInfo}>
             <MapPin size={16} color="#6b7280" strokeWidth={2} />
-            <Text style={styles.farmerText}>{product.farmer.farm_name} • 1.2 miles</Text>
+            <Text style={styles.farmerText}>
+              {product.farmer.farm_name} • {product.distance_miles ? `${product.distance_miles.toFixed(1)} miles` : 'Nearby'}
+            </Text>
           </View>
 
           <View style={styles.ratingSection}>

@@ -13,12 +13,14 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft, MapPin, CreditCard, Lock, CircleCheck as CheckCircle, Clock } from 'lucide-react-native';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useStripePayment } from '@/hooks/useStripePayment';
 import * as WebBrowser from 'expo-web-browser';
 
 export default function CheckoutScreen() {
   const router = useRouter();
   const { items, getTotalPrice, clearCart } = useCart();
   const { user } = useAuth();
+  const { processPayment, loading: stripeLoading } = useStripePayment();
   const [selectedPayment, setSelectedPayment] = useState('card');
   const [deliveryTime, setDeliveryTime] = useState('today');
   const [loading, setLoading] = useState(false);
@@ -39,45 +41,43 @@ export default function CheckoutScreen() {
       return;
     }
 
-    setLoading(true);
     try {
-      // Create marketplace checkout session with Connect
-      const response = await fetch(`${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/marketplace-checkout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          items: items.map(item => ({
-            product_id: item.product.id,
-            farmer_id: item.product.farmer_id,
-            name: item.product.name,
-            description: item.product.description,
-            price: item.product.price,
-            quantity: item.quantity,
-            image_url: item.product.image_url,
-          })),
-          delivery_address: '123 Oak Street, Downtown Community District, 12345',
-          delivery_time: deliveryTime === 'today' ? '2-4 PM' : '9 AM - 12 PM',
-        }),
-      });
+      // Group items by farmer for multi-vendor support
+      const itemsByFarmer = items.reduce((acc: any, item) => {
+        const farmerId = item.product.farmer_id;
+        if (!acc[farmerId]) {
+          acc[farmerId] = [];
+        }
+        acc[farmerId].push(item);
+        return acc;
+      }, {});
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create checkout session');
+      // For now, handle single farmer checkout (can be extended for multi-farmer)
+      const farmerIds = Object.keys(itemsByFarmer);
+      if (farmerIds.length > 1) {
+        Alert.alert('Multiple Farmers', 'Please checkout items from one farmer at a time for now');
+        return;
       }
 
-      if (data.url) {
-        // Clear cart after successful checkout initiation
+      const farmerId = farmerIds[0];
+      const farmerItems = itemsByFarmer[farmerId];
+      
+      const result = await processPayment(total, farmerId, farmerItems);
+      
+      if (result.success) {
         clearCart();
-        await WebBrowser.openBrowserAsync(data.url);
+        Alert.alert(
+          'Payment Successful!',
+          'Your order has been placed successfully.',
+          [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
+        );
+      } else if (result.canceled) {
+        // User canceled payment
+        return;
       }
+
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to place order');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -200,11 +200,10 @@ export default function CheckoutScreen() {
         <TouchableOpacity 
           style={[styles.checkoutButton, loading && styles.checkoutButtonDisabled]}
           onPress={handlePayment}
-          disabled={loading}
+          disabled={loading || stripeLoading}
         >
-          <Lock size={20} color="#ffffff" strokeWidth={2} />
           <Text style={styles.checkoutButtonText}>
-            {loading ? 'Processing...' : `Pay $${total.toFixed(2)}`}
+            {loading || stripeLoading ? 'Processing...' : `Pay $${total.toFixed(2)}`}
           </Text>
         </TouchableOpacity>
         <Text style={styles.secureText}>🔒 Secure payment processing</Text>

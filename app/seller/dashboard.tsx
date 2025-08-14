@@ -18,6 +18,7 @@ import { useStripeConnect } from '@/hooks/useStripeConnect';
 import { useConversations } from '@/hooks/useConversations';
 import { MessageCircle } from 'lucide-react-native';
 import ConnectStatusCard from '@/components/ConnectStatusCard';
+import StripeConnectButton from '@/components/StripeConnectButton';
 import { supabase } from '@/lib/supabase';
 
 export default function SellerDashboardScreen() {
@@ -179,6 +180,21 @@ export default function SellerDashboardScreen() {
           onSetupBilling={handleSetupBilling}
           onSubscribePremium={handlePremiumSubscription}
         />
+
+        {/* Quick Stripe Setup */}
+        {!connectAccount?.charges_enabled && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Start Receiving Payments</Text>
+            <Text style={styles.stripeDescription}>
+              Connect your Stripe account to start receiving payments from customers
+            </Text>
+            <StripeConnectButton
+              onPress={handleStripeOnboarding}
+              loading={stripeLoading}
+              connected={connectAccount?.charges_enabled}
+            />
+          </View>
+        )}
 
         {/* Quick Actions */}
         <View style={styles.section}>
@@ -524,6 +540,12 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  stripeDescription: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 16,
+    lineHeight: 20,
   },
   pendingContainer: {
     flex: 1,

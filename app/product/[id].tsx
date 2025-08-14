@@ -15,6 +15,7 @@ import { useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Database } from '@/lib/database.types';
 import { useCart } from '@/contexts/CartContext';
+import { useConversations } from '@/hooks/useConversations';
 import { 
   ArrowLeft, 
   Heart, 
@@ -26,7 +27,8 @@ import {
   Shield,
   Leaf,
   Plus,
-  Minus
+  Minus,
+  MessageCircle
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
@@ -47,6 +49,7 @@ export default function ProductDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { addToCart } = useCart();
+  const { createConversation } = useConversations();
 
   useEffect(() => {
     fetchProduct();
@@ -95,6 +98,17 @@ export default function ProductDetailScreen() {
     if (!product) return;
     addToCart(product, quantity);
     router.back();
+  };
+
+  const handleContactFarmer = async () => {
+    if (!product) return;
+    
+    try {
+      const conversation = await createConversation(product.farmer_id, product.id);
+      router.push(`/chat/${conversation.id}`);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to start conversation');
+    }
   };
 
   if (loading) {
@@ -227,6 +241,11 @@ export default function ProductDetailScreen() {
         <TouchableOpacity style={styles.addToCartButton} onPress={handleAddToCart}>
           <Text style={styles.addToCartText}>Add to Cart</Text>
           <Text style={styles.totalPrice}>${(product.price * quantity).toFixed(2)}</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.contactButton} onPress={handleContactFarmer}>
+          <MessageCircle size={20} color="#16a34a" strokeWidth={2} />
+          <Text style={styles.contactButtonText}>Contact Farmer</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

@@ -45,6 +45,31 @@ Deno.serve(async (req) => {
     console.log('Processing webhook event:', event.type);
 
     switch (event.type) {
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object as Stripe.PaymentIntent;
+        
+        if (paymentIntent.metadata && paymentIntent.metadata.farmer_id) {
+          // Create marketplace order record
+          await supabase
+            .from('marketplace_orders')
+            .insert({
+              user_id: paymentIntent.metadata.user_id,
+              farmer_id: paymentIntent.metadata.farmer_id,
+              stripe_payment_intent_id: paymentIntent.id,
+              application_fee_amount: paymentIntent.application_fee_amount || 0,
+              transfer_amount: paymentIntent.amount - (paymentIntent.application_fee_amount || 0),
+              total_amount: paymentIntent.amount,
+              status: 'completed',
+              metadata: {
+                items: JSON.parse(paymentIntent.metadata.items),
+              },
+            });
+
+          console.log(`Order created for payment intent ${paymentIntent.id}`);
+        }
+        break;
+      }
+
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         

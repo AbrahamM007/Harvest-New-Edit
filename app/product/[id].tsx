@@ -16,6 +16,7 @@ import { supabase } from '@/lib/supabase';
 import type { Database } from '@/lib/database.types';
 import { useCart } from '@/contexts/CartContext';
 import { useConversations } from '@/hooks/useConversations';
+import { Alert } from 'react-native';
 import { 
   ArrowLeft, 
   Heart, 

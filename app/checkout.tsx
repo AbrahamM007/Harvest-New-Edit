@@ -14,7 +14,7 @@ import { ArrowLeft, MapPin, CreditCard, Lock, CircleCheck as CheckCircle, Clock 
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useStripePayment } from '@/hooks/useStripePayment';
-import * as WebBrowser from 'expo-web-browser';
+import { Alert } from 'react-native';
 
 export default function CheckoutScreen() {
   const router = useRouter();
@@ -157,16 +157,10 @@ export default function CheckoutScreen() {
             onPress={() => setSelectedPayment('card')}
           >
             <CreditCard size={20} color="#16a34a" strokeWidth={2} />
-            {loading ? (
-              <>
-                <Text style={styles.checkoutButtonText}>Creating checkout...</Text>
-              </>
-            ) : (
-              <>
-                <Lock size={20} color="#ffffff" strokeWidth={2} />
-                <Text style={styles.checkoutButtonText}>Pay $${total.toFixed(2)}</Text>
-              </>
-            )}
+            <View style={styles.paymentInfo}>
+              <Text style={styles.paymentTitle}>Credit or Debit Card</Text>
+              <Text style={styles.paymentSubtitle}>Secure payment with Stripe</Text>
+            </View>
             <Lock size={16} color="#6b7280" strokeWidth={2} />
           </TouchableOpacity>
         </View>
@@ -202,9 +196,17 @@ export default function CheckoutScreen() {
           onPress={handlePayment}
           disabled={loading || stripeLoading}
         >
-          <Text style={styles.checkoutButtonText}>
-            {loading || stripeLoading ? 'Processing...' : `Pay $${total.toFixed(2)}`}
-          </Text>
+          {loading || stripeLoading ? (
+            <>
+              <ActivityIndicator size="small" color="#ffffff" />
+              <Text style={styles.checkoutButtonText}>Processing...</Text>
+            </>
+          ) : (
+            <>
+              <Lock size={20} color="#ffffff" strokeWidth={2} />
+              <Text style={styles.checkoutButtonText}>Pay ${total.toFixed(2)}</Text>
+            </>
+          )}
         </TouchableOpacity>
         <Text style={styles.secureText}>🔒 Secure payment processing</Text>
       </View>

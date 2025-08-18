@@ -5,7 +5,15 @@ import { useRouter, useSegments } from 'expo-router';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useAuth } from '@/hooks/useAuth';
 import { CartProvider } from '@/contexts/CartContext';
-import { StripeProvider } from '@stripe/stripe-react-native';
+import { Platform } from 'react-native';
+
+// Conditionally import StripeProvider only for native platforms
+let StripeProvider: any = ({ children }: { children: React.ReactNode }) => children;
+
+if (Platform.OS !== 'web') {
+  const { StripeProvider: NativeStripeProvider } = require('@stripe/stripe-react-native');
+  StripeProvider = NativeStripeProvider;
+}
 
 export default function RootLayout() {
   useFrameworkReady();

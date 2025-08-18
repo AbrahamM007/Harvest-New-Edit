@@ -5,20 +5,24 @@ const config = getDefaultConfig(__dirname);
 // Enable CSS support for web
 config.resolver.assetExts.push('css');
 
-// Fix Stripe React Native web compatibility
-config.resolver.unstable_conditionNames = ['browser', 'require', 'react-native'];
-
 // Add platform-specific module resolution for web
 config.resolver.platforms = ['ios', 'android', 'native', 'web'];
 
-// Resolve react-native to react-native-web for web platform
+// For web platform, resolve react-native to react-native-web
+config.resolver.resolverMainFields = ['react-native', 'browser', 'main'];
+
+// Add alias for web compatibility
 config.resolver.alias = {
-  'react-native': 'react-native-web',
+  ...(config.resolver.alias || {}),
+  // Only alias react-native to react-native-web on web platform
+  'react-native$': 'react-native-web',
 };
 
-// Add extra node modules mapping for web compatibility
-config.resolver.extraNodeModules = {
-  'react-native': require.resolve('react-native-web'),
-};
+// Block native-only modules on web
+config.resolver.blockList = [
+  // Block native-only Stripe modules on web
+  /node_modules\/@stripe\/stripe-react-native\/.*\/Native.*\.js$/,
+  /node_modules\/react-native\/Libraries\/Utilities\/codegenNativeCommands\.js$/,
+];
 
 module.exports = config;

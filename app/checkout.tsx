@@ -14,7 +14,6 @@ import { ArrowLeft, MapPin, CreditCard, Lock, CircleCheck as CheckCircle, Clock 
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useStripePayment } from '@/hooks/useStripePayment';
-import { Alert } from 'react-native';
 
 export default function CheckoutScreen() {
   const router = useRouter();
